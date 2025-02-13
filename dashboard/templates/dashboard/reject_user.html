@@ -1,0 +1,54 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Reject User{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card dashboard-card">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0 text-danger">Reject User: {{ user.username }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Warning: This action cannot be undone. The user will need to register again.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label">User Information</label>
+                            <table class="table">
+                                <tr>
+                                    <th>Username:</th>
+                                    <td>{{ user.username }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>{{ user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>User Type:</th>
+                                    <td>{{ user.user_type|title }}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'dashboard:pending_approvals' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-danger" 
+                                    onclick="return confirm('Are you sure you want to reject and remove this user?')">
+                                <i class="fas fa-times"></i> Confirm Rejection
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

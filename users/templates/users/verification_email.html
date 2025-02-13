@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Your Email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome to HomeFix!</h2>
+        <p>Hi {{ user.username }},</p>
+        <p>Thank you for registering with HomeFix. To complete your registration and verify your email address, please click the button below:</p>
+        
+        <a href="{{ verification_url }}" class="button">Verify Email Address</a>
+        
+        <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
+        <p>{{ verification_url }}</p>
+        
+        <p>This link will expire in 24 hours for security reasons.</p>
+        
+        <div class="footer">
+            <p>If you didn't create an account with HomeFix, you can safely ignore this email.</p>
+            <p>© 2025 HomeFix. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

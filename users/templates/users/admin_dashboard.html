@@ -1,0 +1,55 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Admin Dashboard</h2>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title mb-0">Pending Approvals</h3>
+        </div>
+        <div class="card-body">
+            {% if pending_users %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>User Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in pending_users %}
+                                <tr>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.phone_number }}</td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ user.user_type|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'approve_user' user.id %}" 
+                                           class="btn btn-success btn-sm"
+                                           onclick="return confirm('Are you sure you want to approve this user?')">
+                                            Approve
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center">No pending approvals.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

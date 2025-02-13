@@ -1,0 +1,91 @@
+{% extends 'services/base.html' %}
+
+{% block title %}Provider Reviews{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Reviews & Ratings</h5>
+                        <div class="average-rating">
+                            <span class="h4 mb-0 text-warning">
+                                {% if avg_rating %}
+                                    {{ avg_rating|floatformat:1 }}
+                                {% else %}
+                                    0.0
+                                {% endif %}
+                            </span>
+                            <span class="text-muted">/5</span>
+                            <div class="star-display">
+                                {% with ''|center:5 as range %}
+                                {% for _ in range %}
+                                    <i class="fas fa-star{% if forloop.counter <= avg_rating|default:0 %}{% else %}-o{% endif %} text-warning"></i>
+                                {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <small class="text-muted d-block">
+                                Based on {{ reviews.count }} review{{ reviews.count|pluralize }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="review-item {% if not forloop.last %}border-bottom{% endif %} pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1">{{ review.reviewer.get_full_name|default:review.reviewer.username }}</h6>
+                                        <div class="text-warning mb-2">
+                                            {% with ''|center:5 as range %}
+                                            {% for _ in range %}
+                                                <i class="fas fa-star{% if forloop.counter <= review.rating %}{% else %}-o{% endif %}"></i>
+                                            {% endfor %}
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ review.created_at|date:"M d, Y" }}
+                                    </small>
+                                </div>
+                                <p class="review-text mb-1">{{ review.comment }}</p>
+                                <small class="text-muted">
+                                    Service: {{ review.service_request.category.name }}
+                                </small>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-center text-muted mb-0">No reviews yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .average-rating {
+        text-align: center;
+    }
+    
+    .star-display {
+        font-size: 1.2rem;
+        margin: 0.5rem 0;
+    }
+    
+    .review-item:last-child {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+        border-bottom: none !important;
+    }
+    
+    .review-text {
+        white-space: pre-line;
+    }
+</style>
+{% endblock %}

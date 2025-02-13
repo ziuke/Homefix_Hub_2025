@@ -1,0 +1,167 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Chat - {{ service_request.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: 70vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: #f8f9fa;
+    }
+    .message {
+        margin-bottom: 1rem;
+        max-width: 70%;
+    }
+    .message.own-message {
+        margin-left: auto;
+    }
+    .message-content {
+        padding: 0.75rem;
+        border-radius: 1rem;
+    }
+    .own-message .message-content {
+        background-color: #007bff;
+        color: white;
+    }
+    .other-message .message-content {
+        background-color: #e9ecef;
+    }
+    .message-time {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .chat-input {
+        padding: 1rem;
+        background-color: white;
+        border-top: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{{ service_request.title }}</h5>
+            <small class="text-muted">Chat with {{ service_request.provider.get_full_name|default:service_request.provider.username }}</small>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="chat-container" x-data="chatRoom">
+                <div class="chat-messages" x-ref="messageContainer">
+                    <template x-for="message in messages" :key="message.id">
+                        <div :class="{'message': true, 'own-message': message.is_own_message, 'other-message': !message.is_own_message}">
+                            <div class="message-content" x-text="message.content"></div>
+                            <div class="message-time">
+                                <small x-text="message.sender_name"></small> • 
+                                <small x-text="formatDate(message.created_at)"></small>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <div class="chat-input">
+                    <form @submit.prevent="sendMessage" class="d-flex gap-2">
+                        <input type="text" 
+                               x-model="newMessage" 
+                               class="form-control" 
+                               placeholder="Type your message..."
+                               @keydown.enter.prevent="sendMessage">
+                        <button type="submit" 
+                                class="btn btn-primary" 
+                                :disabled="!newMessage.trim()">
+                            Send
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('chatRoom', () => ({
+            messages: [],
+            newMessage: '',
+            pollingInterval: null,
+
+            init() {
+                this.loadMessages();
+                this.startPolling();
+                this.$watch('messages', () => {
+                    this.$nextTick(() => {
+                        this.scrollToBottom();
+                    });
+                });
+            },
+
+            formatDate(dateStr) {
+                return new Date(dateStr).toLocaleTimeString();
+            },
+
+            scrollToBottom() {
+                const container = this.$refs.messageContainer;
+                container.scrollTop = container.scrollHeight;
+            },
+
+            async loadMessages() {
+                try {
+                    const response = await fetch(`/chat/{{ chat_room.id }}/messages/`);
+                    const data = await response.json();
+                    this.messages = data.messages;
+                    this.scrollToBottom();
+                } catch (error) {
+                    console.error('Error loading messages:', error);
+                }
+            },
+
+            startPolling() {
+                this.pollingInterval = setInterval(() => {
+                    this.loadMessages();
+                }, 3000);
+            },
+
+            async sendMessage() {
+                if (!this.newMessage.trim()) return;
+
+                const formData = new FormData();
+                formData.append('content', this.newMessage.trim());
+
+                try {
+                    const response = await fetch(`/chat/{{ chat_room.id }}/send/`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        this.messages.push(data);
+                        this.newMessage = '';
+                        this.scrollToBottom();
+                    } else {
+                        console.error('Error sending message:', data.error);
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                }
+            }
+        }));
+    });
+</script>
+{% endblock %}

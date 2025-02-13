@@ -1,0 +1,112 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}User Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card dashboard-card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">User Details</h4>
+                    <div class="btn-group">
+                        {% if not user_details.is_approved %}
+                            <a href="{% url 'dashboard:approve_user' user_details.id %}" 
+                               class="btn btn-success">
+                                <i class="fas fa-check"></i> Approve
+                            </a>
+                            <a href="{% url 'dashboard:reject_user' user_details.id %}" 
+                               class="btn btn-danger">
+                                <i class="fas fa-times"></i> Reject
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Basic Information</h5>
+                            <table class="table">
+                                <tr>
+                                    <th>Username:</th>
+                                    <td>{{ user_details.username }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>{{ user_details.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Phone:</th>
+                                    <td>{{ user_details.phone_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th>User Type:</th>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ user_details.user_type|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        {% if user_details.is_approved %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Email Verified:</th>
+                                    <td>
+                                        {% if user_details.is_email_verified %}
+                                            <span class="badge bg-success">Yes</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Date Joined:</th>
+                                    <td>{{ user_details.date_joined|date:"M d, Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Profile Information</h5>
+                            {% if profile %}
+                                <table class="table">
+                                    {% if user_details.user_type == 'tenant' %}
+                                        <tr>
+                                            <th>Location:</th>
+                                            <td>{{ profile.location }}</td>
+                                        </tr>
+                                    {% elif user_details.user_type == 'serviceprovider' %}
+                                        <tr>
+                                            <th>Service Location:</th>
+                                            <td>{{ profile.service_location }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Service Provided:</th>
+                                            <td>{{ profile.service_provided }}</td>
+                                        </tr>
+                                        {% if profile.certifications %}
+                                            <tr>
+                                                <th>Certifications:</th>
+                                                <td>{{ profile.certifications|linebreaks }}</td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endif %}
+                                </table>
+                            {% else %}
+                                <p class="text-muted">No profile information available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

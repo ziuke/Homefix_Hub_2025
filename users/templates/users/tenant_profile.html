@@ -1,0 +1,42 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Tenant Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card profile-card">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                        <h2 class="mt-3">{{ user.username }}</h2>
+                        <p class="text-muted">Tenant</p>
+                        {% if not user.is_approved %}
+                            <div class="alert alert-warning">
+                                Your account is pending approval from admin.
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p><strong>Phone:</strong> {{ user.phone_number }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Location:</strong> {{ profile.location }}</p>
+                            <p><strong>Status:</strong> 
+                                {% if user.is_approved %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending Approval</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

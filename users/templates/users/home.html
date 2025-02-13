@@ -1,0 +1,222 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Welcome to HomeFix{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if user.is_authenticated %}
+        {% if user.user_type == 'tenant' %}
+            <!-- Tenant Dashboard -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h4 class="card-title">Welcome back, {{ user.get_full_name|default:user.username }}!</h4>
+                            <p class="card-text">Need maintenance or repairs? We're here to help.</p>
+                            <div class="d-grid gap-2 d-md-flex">
+                                <a href="{% url 'services:request_create' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> New Service Request
+                                </a>
+                                <a href="{% url 'services:search_providers' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-search"></i> Find Service Providers
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Quick Actions</h5>
+                            <div class="list-group">
+                                <a href="{% url 'services:request_list' %}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-clipboard-list"></i> View My Requests
+                                </a>
+                                <a href="{% url 'profile' %}" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-user"></i> Update Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Service Requests -->
+            {% if recent_requests %}
+                <h4 class="mb-3">Recent Service Requests</h4>
+                <div class="row">
+                    {% for request in recent_requests %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h5 class="card-title mb-0">{{ request.title }}</h5>
+                                        <span class="badge {% if request.status == 'completed' %}bg-success
+                                                         {% elif request.status == 'in_progress' %}bg-info
+                                                         {% elif request.status == 'pending' %}bg-warning
+                                                         {% else %}bg-secondary{% endif %}">
+                                            {{ request.status|title }}
+                                        </span>
+                                    </div>
+                                    <p class="card-text">{{ request.description|truncatewords:20 }}</p>
+                                    <a href="{% url 'services:request_detail' request.pk %}" class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        {% elif user.user_type == 'serviceprovider' %}
+            <!-- Service Provider Dashboard -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h4 class="card-title">Welcome back, {{ user.get_full_name|default:user.username }}!</h4>
+                            <p class="card-text">Check your dashboard for new service requests and manage your jobs.</p>
+                            <div class="d-grid gap-2 d-md-flex">
+                                <a href="{% url 'services:provider_dashboard' %}" class="btn btn-primary">
+                                    <i class="fas fa-th-large"></i> Go to Dashboard
+                                </a>
+                                <a href="{% url 'services:request_list' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-tools"></i> Browse Service Requests
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Quick Stats</h5>
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Rating</span>
+                                        <span class="text-warning">
+                                            {% with ''|center:5 as range %}
+                                            {% for _ in range %}
+                                                <i class="fas fa-star{% if forloop.counter <= user.providerprofile.rating %}{% else %}-o{% endif %}"></i>
+                                            {% endfor %}
+                                            {% endwith %}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Status</span>
+                                        <span class="badge {% if user.providerprofile.is_available %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if user.providerprofile.is_available %}Available{% else %}Unavailable{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Jobs -->
+            {% if upcoming_jobs %}
+                <h4 class="mb-3">Upcoming Jobs</h4>
+                <div class="row">
+                    {% for job in upcoming_jobs %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h5 class="card-title mb-0">{{ job.title }}</h5>
+                                        <span class="badge {% if job.status == 'in_progress' %}bg-info{% else %}bg-warning{% endif %}">
+                                            {{ job.status|title }}
+                                        </span>
+                                    </div>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar"></i> {{ job.scheduled_date|date:"M d, Y" }}
+                                            {% if job.scheduled_time_slot %}
+                                                at {{ job.scheduled_time_slot }}
+                                            {% endif %}
+                                        </small>
+                                    </p>
+                                    <a href="{% url 'services:request_detail' job.pk %}" class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        {% else %}
+            <!-- Admin Dashboard Link -->
+            <div class="text-center py-5">
+                <h4>Welcome, Administrator!</h4>
+                <p>Access the admin dashboard to manage users and monitor platform activity.</p>
+                <a href="{% url 'dashboard:home' %}" class="btn btn-primary">
+                    <i class="fas fa-chart-line"></i> Go to Admin Dashboard
+                </a>
+            </div>
+        {% endif %}
+    {% else %}
+        <!-- Landing Page -->
+        <div class="px-4 py-5 my-5 text-center">
+            <h1 class="display-5 fw-bold mb-4">Welcome to HomeFix</h1>
+            <div class="col-lg-6 mx-auto">
+                <p class="lead mb-4">
+                    Your one-stop solution for home maintenance and repairs. 
+                    Connect with qualified service providers or offer your services to homeowners.
+                </p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a href="{% url 'register_tenant' %}" class="btn btn-primary btn-lg px-4 gap-3">
+                        <i class="fas fa-home"></i> Register as Tenant
+                    </a>
+                    <a href="{% url 'register_service_provider' %}" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="fas fa-tools"></i> Register as Provider
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="row g-4 py-5">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-tools fa-3x text-primary"></i>
+                        </div>
+                        <h3>Quality Service</h3>
+                        <p>Connect with verified service providers for all your maintenance needs.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-clock fa-3x text-primary"></i>
+                        </div>
+                        <h3>Quick Response</h3>
+                        <p>Get fast responses from available service providers in your area.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-star fa-3x text-primary"></i>
+                        </div>
+                        <h3>Verified Reviews</h3>
+                        <p>Make informed decisions based on genuine customer reviews and ratings.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,280 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Request Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="mb-4">
+        <a href="{% url 'dashboard:service_requests' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Requests
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Request Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Request Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Title</h6>
+                            <p>{{ service_request.title }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Status</h6>
+                            <span class="badge {% if service_request.status == 'completed' %}bg-success
+                                             {% elif service_request.status == 'in_progress' %}bg-info
+                                             {% elif service_request.status == 'pending' %}bg-warning
+                                             {% else %}bg-secondary{% endif %}">
+                                {{ service_request.status|title }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Category</h6>
+                            <p><i class="{{ service_request.category.icon }}"></i> {{ service_request.category.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Created</h6>
+                            <p>{{ service_request.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6>Description</h6>
+                        <p>{{ service_request.description }}</p>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Location</h6>
+                            <p>{{ service_request.location }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Priority</h6>
+                            <span class="badge {% if service_request.priority == 'high' %}bg-danger
+                                             {% elif service_request.priority == 'medium' %}bg-warning
+                                             {% else %}bg-info{% endif %}">
+                                {{ service_request.priority|title }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if service_request.scheduled_date %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Scheduled Date</h6>
+                            <p>{{ service_request.scheduled_date|date:"M d, Y" }}</p>
+                        </div>
+                        {% if service_request.scheduled_time_slot %}
+                        <div class="col-md-6">
+                            <h6>Time Slot</h6>
+                            <p>{{ service_request.scheduled_time_slot }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if service_request.provider %}
+                    <div class="mb-3">
+                        <h6>Assigned Provider</h6>
+                        <p>{{ service_request.provider.get_full_name|default:service_request.provider.username }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if service_request.estimated_cost or service_request.actual_cost %}
+                    <div class="row mb-3">
+                        {% if service_request.estimated_cost %}
+                        <div class="col-md-6">
+                            <h6>Estimated Cost</h6>
+                            <p>${{ service_request.estimated_cost }}</p>
+                        </div>
+                        {% endif %}
+                        {% if service_request.actual_cost %}
+                        <div class="col-md-6">
+                            <h6>Actual Cost</h6>
+                            <p>${{ service_request.actual_cost }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Service Offers -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Service Offers</h5>
+                </div>
+                <div class="card-body">
+                    {% if offers %}
+                        {% for offer in offers %}
+                            <div class="border-bottom mb-3 pb-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1">{{ offer.provider.get_full_name|default:offer.provider.username }}</h6>
+                                        <p class="text-muted mb-0">
+                                            <small>Offered on {{ offer.created_at|date:"M d, Y H:i" }}</small>
+                                        </p>
+                                    </div>
+                                    <span class="badge {% if offer.status == 'accepted' %}bg-success
+                                                     {% elif offer.status == 'rejected' %}bg-danger
+                                                     {% elif offer.status == 'withdrawn' %}bg-secondary
+                                                     {% else %}bg-warning{% endif %}">
+                                        {{ offer.status|title }}
+                                    </span>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <p class="mb-0"><strong>Proposed Cost:</strong> ${{ offer.proposed_cost }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-0"><strong>Available:</strong> {{ offer.proposed_date|date:"M d, Y" }}</p>
+                                    </div>
+                                </div>
+                                {% if offer.notes %}
+                                    <p class="mb-0"><small>{{ offer.notes }}</small></p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No offers received yet</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if review %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Service Review</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="text-warning">
+                                {% with ''|center:5 as range %}
+                                {% for _ in range %}
+                                    <i class="fas fa-star{% if forloop.counter <= review.rating %}{% else %}-o{% endif %}"></i>
+                                {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <p class="text-muted"><small>Reviewed on {{ review.created_at|date:"M d, Y" }}</small></p>
+                        </div>
+                        <p class="mb-0">{{ review.comment }}</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <!-- Tenant Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Tenant Information</h5>
+                </div>
+                <div class="card-body">
+                    <h6>{{ service_request.tenant.get_full_name|default:service_request.tenant.username }}</h6>
+                    <p class="text-muted mb-3">
+                        <small>Member since {{ service_request.tenant.date_joined|date:"M Y" }}</small>
+                    </p>
+                    {% if service_request.tenant.email %}
+                        <p class="mb-2">
+                            <i class="fas fa-envelope"></i>
+                            {{ service_request.tenant.email }}
+                        </p>
+                    {% endif %}
+                    {% if service_request.tenant.phone %}
+                        <p class="mb-2">
+                            <i class="fas fa-phone"></i>
+                            {{ service_request.tenant.phone }}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Request Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Request Created</h6>
+                                <p class="text-muted mb-0">
+                                    <small>{{ service_request.created_at|date:"M d, Y H:i" }}</small>
+                                </p>
+                            </div>
+                        </div>
+                        {% if service_request.provider %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-info"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-0">Provider Assigned</h6>
+                                    <p class="text-muted mb-0">
+                                        <small>{{ service_request.provider.get_full_name|default:service_request.provider.username }}</small>
+                                    </p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if service_request.status == 'completed' and service_request.completed_at %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-success"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-0">Service Completed</h6>
+                                    <p class="text-muted mb-0">
+                                        <small>{{ service_request.completed_at|date:"M d, Y H:i" }}</small>
+                                    </p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 20px;
+    }
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+    .timeline-marker {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 12px;
+        bottom: -32px;
+        width: 2px;
+        background: #e9ecef;
+    }
+    .timeline-item:last-child::before {
+        display: none;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Provider Performance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">Provider Performance</h1>
+
+    <div class="row">
+        {% for provider in providers %}
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-user-circle fa-3x text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="mb-0">{{ provider.user.get_full_name|default:provider.user.username }}</h5>
+                                <small class="text-muted">{{ provider.user.email }}</small>
+                            </div>
+                        </div>
+
+                        <div class="row g-0 mb-3">
+                            <div class="col border-end">
+                                <div class="p-3 text-center">
+                                    <h6 class="mb-0">Total Requests</h6>
+                                    <span class="h4">{{ provider.total_requests }}</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="p-3 text-center">
+                                    <h6 class="mb-0">Completed</h6>
+                                    <span class="h4">{{ provider.completed_requests }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>Completion Rate</span>
+                                <span class="text-muted">
+                                    {% widthratio provider.completed_requests provider.total_requests 100 %}%
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {% widthratio provider.completed_requests provider.total_requests 100 %}%">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Average Rating</span>
+                                <div class="text-warning">
+                                    {% with ''|center:5 as range %}
+                                    {% for _ in range %}
+                                        <i class="fas fa-star{% if forloop.counter <= provider.avg_rating %}{% else %}-o{% endif %}"></i>
+                                    {% endfor %}
+                                    {% endwith %}
+                                    <small class="text-muted ms-1">({{ provider.avg_rating|floatformat:1 }})</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>Status</span>
+                                <span class="badge {% if provider.is_available %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if provider.is_available %}Available{% else %}Unavailable{% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <a href="{% url 'dashboard:user_details' provider.user.id %}" 
+                               class="btn btn-outline-primary">
+                                View Full Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                    No service providers found.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

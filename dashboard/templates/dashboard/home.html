@@ -1,0 +1,133 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card dashboard-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Tenants</h6>
+                            <h2 class="mt-2 mb-0">{{ tenant_count }}</h2>
+                        </div>
+                        <i class="fas fa-home fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card dashboard-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Service Providers</h6>
+                            <h2 class="mt-2 mb-0">{{ provider_count }}</h2>
+                        </div>
+                        <i class="fas fa-tools fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card dashboard-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Pending Approvals</h6>
+                            <h2 class="mt-2 mb-0">{{ pending_approvals }}</h2>
+                        </div>
+                        <i class="fas fa-user-clock fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Registrations -->
+        <div class="col-md-8">
+            <div class="card dashboard-card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Recent Registrations</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_registrations %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Type</th>
+                                        <th>Date Joined</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in recent_registrations %}
+                                        <tr>
+                                            <td>{{ user.username }}</td>
+                                            <td>
+                                                <span class="badge bg-info">
+                                                    {{ user.user_type|title }}
+                                                </span>
+                                            </td>
+                                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                            <td>
+                                                {% if user.is_approved %}
+                                                    <span class="badge bg-success">Approved</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'dashboard:user_details' user.id %}" 
+                                                   class="btn btn-sm btn-primary">
+                                                    View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center mb-0">No recent registrations.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Notifications -->
+        <div class="col-md-4">
+            <div class="card dashboard-card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Notifications</h5>
+                    <a href="{% url 'dashboard:notifications' %}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if notifications %}
+                        <div class="list-group list-group-flush">
+                            {% for notification in notifications %}
+                                <div class="list-group-item">
+                                    <h6 class="mb-1">{{ notification.title }}</h6>
+                                    <p class="mb-1 text-muted small">{{ notification.message }}</p>
+                                    <small class="text-muted">
+                                        {{ notification.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-center mb-0">No new notifications.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
