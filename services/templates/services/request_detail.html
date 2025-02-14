@@ -1,4 +1,4 @@
- {% extends 'users/base.html' %}
+{% extends 'users/base.html' %}
 {% load crispy_forms_tags %}
 
 {% block title %}Service Request Details{% endblock %}
@@ -255,6 +255,9 @@
         <!-- Sidebar -->
         <div class="col-md-4">
             {% if user.user_type == 'serviceprovider' and service_request.status == 'pending' %}
+            {% if service_request.is_provider_selected %}
+            <div class="hidden">
+            {% endif %}
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">Make an Offer</h5>
@@ -277,11 +280,15 @@
                         {{ offer_form|crispy }}
                         <button type="submit" class="btn btn-primary">Submit Offer</button>
                     </form>
+                    <div id="offerSubmittedCheck" style="display:none; color: green;"><i class="fas fa-check"></i> Offer has been submitted!</div>
                 </div>
             </div>
+            {% if service_request.is_provider_selected %}
+            </div>
+            {% endif %}
             {% endif %}
 
-            {% if offers %}
+            {% if offers and not service_request.is_provider_selected %}
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h5 class="mb-0">Offers</h5>

@@ -88,6 +88,12 @@ def service_request_detail(request, pk):
     return render(request, 'services/request_detail.html', context)
 
 @login_required
+def submit_offer_view(request, service_request_id):
+    service_request = get_object_or_404(ServiceRequest, pk=service_request_id)
+    offer_form = ServiceOfferForm()
+    return render(request, 'services/submit_offer.html', {'offer_form': offer_form, 'service_request': service_request})
+
+@login_required
 def submit_offer(request, pk):
     print("\n=== Debug: Submit Offer ===")
     print(f"Request method: {request.method}")

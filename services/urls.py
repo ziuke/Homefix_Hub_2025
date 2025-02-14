@@ -13,6 +13,8 @@ urlpatterns = [
     path('request/<int:pk>/status/', views.update_request_status, name='update_status'),
     path('request/<int:pk>/review/', views.submit_review, name='submit_review'),
     path('request/<int:pk>/message/', views.send_message, name='send_message'),
+    path('request/<int:service_request_id>/submit/', views.submit_offer_view, name='submit_offer_view'),
+    path('request/<int:service_request_id>/submit/', views.submit_offer_view, name='submit_offer_view'),
     
     # Provider Management
     path('providers/search/', views.search_providers, name='search_providers'),

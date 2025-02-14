@@ -1,0 +1,18 @@
+{% extends 'users/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Submit Offer{% endblock %}
+
+{% block content %}
+<h2>Submit Offer</h2>
+<form method="post" action="{% url 'services:submit_offer' service_request.id %}">
+    {% csrf_token %}
+    {% if offer_form.non_field_errors %}
+    <div class="alert alert-danger">
+        {{ offer_form.non_field_errors }}
+    </div>
+    {% endif %}
+    {{ offer_form|crispy }}
+    <button type="submit" class="btn btn-primary">Submit Offer</button>
+</form>
+{% endblock %}
