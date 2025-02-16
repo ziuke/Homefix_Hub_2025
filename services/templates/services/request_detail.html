@@ -5,320 +5,178 @@
 
 {% block extra_css %}
 <style>
-.card {
-    border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-
-.message {
-    max-width: 80%;
-    margin-bottom: 1rem;
-}
-
-.message-sent {
-    margin-left: auto;
-}
-
-.message-received {
-    margin-right: auto;
-}
-
-.message-content {
-    background-color: #f8f9fa;
-    border-radius: 1rem;
-    padding: 1rem;
-}
-
-.message-sent .message-content {
-    background-color: #e3f2fd;
-}
-
-.offer-card {
-    border: 1px solid #dee2e6;
-    border-radius: 0.5rem;
-    padding: 1rem;
-}
-
-.offer-card:last-child {
-    margin-bottom: 0;
-}
-
-.chat-container {
-    height: 400px;
-    display: flex;
-    flex-direction: column;
-}
-
-.chat-messages {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 1rem;
-    background-color: #f8f9fa;
-}
-
-.chat-message {
-    margin-bottom: 1rem;
-    max-width: 70%;
-}
-
-.chat-message.own-message {
-    margin-left: auto;
-}
-
-.chat-message-content {
-    padding: 0.75rem;
-    border-radius: 1rem;
-}
-
-.own-message .chat-message-content {
-    background-color: #007bff;
-    color: white;
-}
-
-.other-message .chat-message-content {
-    background-color: #e9ecef;
-}
-
-.chat-message-time {
-    font-size: 0.75rem;
-    color: #6c757d;
-    margin-top: 0.25rem;
-}
-
-.chat-input {
-    padding: 1rem;
-    background-color: white;
-    border-top: 1px solid #dee2e6;
-}
+    .chat-container {
+        height: 400px;
+        display: flex;
+        flex-direction: column;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
+<div class="container mx-auto mt-8 px-6">
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
         <!-- Service Request Details -->
-        <div class="col-md-8">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Request Details</h5>
-                </div>
-                <div class="card-body">
-                    <h2>{{ service_request.title }}</h2>
-                    <p class="text-muted">Status: {{ service_request.get_status_display }}</p>
-                    <p>{{ service_request.description }}</p>
-                    
-                    {% if service_request.provider %}
-                    <p>Provider: {{ service_request.provider.get_full_name }}</p>
-                    {% endif %}
-                    
-                    <p>Budget: ${{ service_request.budget }}</p>
-                    <p>Created: {{ service_request.created_at }}</p>
-                </div>
+        <div class="col-span-2 bg-white shadow-lg rounded-lg p-6">
+
+            <!-- Request Information -->
+            <div class="mb-6">
+                <h2 class="text-3xl font-semibold text-gray-900">{{ service_request.title }}</h2>
+                <p class="text-sm text-gray-500">Status: <span class="font-medium text-blue-600">{{ service_request.get_status_display }}</span></p>
+                <p class="text-gray-700 mt-2">Description: {{ service_request.description }}</p>
+
+                {% if service_request.provider %}
+                    <p class="mt-4 font-medium">Provider: {{ service_request.provider.username   }}</p>
+                {% endif %}
+                <p class="mt-2 text-sm text-gray-500">Created on: {{ service_request.created_at|date:"M d, Y" }}</p>
             </div>
 
+            <!-- Chat Section -->
             {% if chat_room %}
-            <div class="card shadow-sm mb-4" x-data="{
-                messages: [],
-                newMessage: '',
-                currentUserId: {{ request.user.id }},
-                chatRoomId: {{ chat_room.id }},
-                
-                init() {
-                    console.log('Initializing chat room...');
-                    this.loadMessages();
-                    this.startPolling();
-                    this.scrollToBottom();
-                },
+                <div class="bg-gray-50 shadow-lg rounded-lg p-6 mt-8">
 
-                formatDate(dateStr) {
-                    console.log('Formatting date:', dateStr);
-                    const date = new Date(dateStr);
-                    return date.toLocaleString();
-                },
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Chat</h3>
 
-                scrollToBottom() {
-                    console.log('Scrolling to bottom...');
-                    const chatMessages = document.getElementById('chatMessages');
-                    if (chatMessages) {
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                    }
-                },
+                    <div x-data="{
+                        messages: [],
+                        newMessage: '',
+                        currentUserId: {{ request.user.id }},
+                        chatRoomId: {{ chat_room.id }},
+                        init() {
+                            this.loadMessages();
+                            this.startPolling();
+                            this.scrollToBottom();
+                        },
+                        formatDate(dateStr) {
+                            const date = new Date(dateStr);
+                            return date.toLocaleString();
+                        },
+                        scrollToBottom() {
+                            const chatMessages = document.getElementById('chatMessages');
+                            if (chatMessages) {
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                            }
+                        },
+                        async loadMessages() {
+                            const response = await fetch(`/chat/${this.chatRoomId}/messages/`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                this.messages = data;
+                                this.$nextTick(() => this.scrollToBottom());
+                            }
+                        },
+                        startPolling() {
+                            setInterval(() => {
+                                this.loadMessages();
+                            }, 3000);
+                        },
+                        async sendMessage() {
+                            if (!this.newMessage.trim()) return;
 
-                async loadMessages() {
-                    console.log('Loading messages...');
-                    try {
-                        const response = await fetch(`/chat/${this.chatRoomId}/messages/`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            console.log('Messages loaded:', data);
-                            this.messages = data;
-                            this.$nextTick(() => this.scrollToBottom());
+                            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                            try {
+                                const response = await fetch(`/chat/${this.chatRoomId}/send/`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': csrfToken
+                                    },
+                                    body: JSON.stringify({ content: this.newMessage })
+                                });
+
+                                if (response.ok) {
+                                    this.newMessage = '';
+                                    await this.loadMessages();
+                                }
+                            } catch (error) {
+                                console.error('Error sending message:', error);
+                            }
                         }
-                    } catch (error) {
-                        console.error('Error loading messages:', error);
-                    }
-                },
-
-                startPolling() {
-                    console.log('Starting message polling...');
-                    setInterval(() => {
-                        this.loadMessages();
-                    }, 3000);
-                },
-
-                async sendMessage() {
-                    console.log('Sending message:', this.newMessage);
-                    if (!this.newMessage.trim()) {
-                        console.log('Message is empty, not sending');
-                        return;
-                    }
-
-                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                    console.log('CSRF token found:', csrfToken ? 'Yes' : 'No');
-                    
-                    try {
-                        const response = await fetch(`/chat/${this.chatRoomId}/send/`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': csrfToken
-                            },
-                            body: JSON.stringify({
-                                content: this.newMessage
-                            })
-                        });
-
-                        if (response.ok) {
-                            console.log('Message sent successfully');
-                            this.newMessage = '';
-                            await this.loadMessages();
-                        } else {
-                            console.error('Error sending message:', await response.text());
-                        }
-                    } catch (error) {
-                        console.error('Error sending message:', error);
-                    }
-                }
-            }">
-                <div class="card-header">
-                    <h5 class="mb-0">Chat</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="chat-container">
-                        <div class="chat-messages" id="chatMessages">
-                            <template x-for="message in messages" :key="message.id">
-                                <div :class="{'chat-message': true, 'own-message': message.sender_id == currentUserId, 'other-message': message.sender_id != currentUserId}">
-                                    <div class="chat-message-content">
-                                        <p class="mb-1" x-text="message.content"></p>
-                                        <small class="chat-message-time" x-text="formatDate(message.created_at)"></small>
+                    }">
+                        <div class="chat-container">
+                            <div id="chatMessages" class="flex flex-col space-y-4 overflow-y-auto p-4 bg-white rounded-lg shadow-inner">
+                                <template x-for="message in messages" :key="message.id">
+                                    <div :class="{'self-end': message.sender_id == currentUserId, 'self-start': message.sender_id != currentUserId}" class="flex flex-col space-y-2">
+                                        <div :class="{'bg-blue-100 text-blue-900': message.sender_id == currentUserId, 'bg-gray-200 text-gray-900': message.sender_id != currentUserId}" class="rounded-lg p-3 max-w-xs">
+                                            <p x-text="message.content"></p>
+                                            <p class="text-xs text-gray-500 mt-1" x-text="formatDate(message.created_at)"></p>
+                                        </div>
                                     </div>
-                                </div>
-                            </template>
-                        </div>
-                        <div class="chat-input">
-                            <form @submit.prevent="sendMessage" class="d-flex gap-2">
-                                {% csrf_token %}
-                                <input type="text" x-model="newMessage" class="form-control" placeholder="Type your message...">
-                                <button type="submit" class="btn btn-primary">Send</button>
-                            </form>
+                                </template>
+                            </div>
+
+                            <div class="mt-4 p-4 bg-gray-50 border-t border-gray-200">
+                                <form @submit.prevent="sendMessage" class="flex items-center gap-4">
+                                    {% csrf_token %}
+                                    <input type="text" x-model="newMessage" class="form-input w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your message...">
+                                    <button type="submit" class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition">Send</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
+
                 </div>
-            </div>
             {% endif %}
 
-            {% if service_request.status == 'completed' and service_request.review %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Review</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="me-2">Rating:</div>
-                        <div class="text-warning">
-                            {% for i in "12345"|make_list %}
-                            {% if forloop.counter <= service_request.review.rating %}
-                            <i class="fas fa-star"></i>
-                            {% else %}
-                            <i class="far fa-star"></i>
-                            {% endif %}
-                            {% endfor %}
+            <!-- Review Section -->
+            {% if service_request.status == 'completed' %}
+                {% if service_request.review %}
+                    <div class="bg-white shadow-lg rounded-lg p-6 mt-8">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Review</h3>
+                        <div class="flex items-center mb-2">
+                            <div class="text-yellow-500">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= service_request.review.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
                         </div>
+                        <p>{{ service_request.review.comment }}</p>
+                        <small class="text-sm text-gray-500">Posted on {{ service_request.review.created_at }}</small>
                     </div>
-                    <p>{{ service_request.review.comment }}</p>
-                    <small class="text-muted">Posted on {{ service_request.review.created_at }}</small>
-                </div>
-            </div>
+                {% else %}
+                    <div class="bg-white shadow-lg rounded-lg p-6 mt-8">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Review</h3>
+                        <a href="{% url 'ratings:create_review' service_request_id=service_request.id %}">Submit a Review</a>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
 
         <!-- Sidebar -->
-        <div class="col-md-4">
-            {% if user.user_type == 'serviceprovider' and service_request.status == 'pending' %}
-            {% if service_request.is_provider_selected %}
-            <div class="hidden">
-            {% endif %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Make an Offer</h5>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
-                    {% endif %}
-                    <form method="post" action="{% url 'services:submit_offer' service_request.id %}">
-                        {% csrf_token %}
-                        {% if offer_form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ offer_form.non_field_errors }}
-                        </div>
-                        {% endif %}
-                        {{ offer_form|crispy }}
-                        <button type="submit" class="btn btn-primary">Submit Offer</button>
-                    </form>
-                    <div id="offerSubmittedCheck" style="display:none; color: green;"><i class="fas fa-check"></i> Offer has been submitted!</div>
-                </div>
-            </div>
-            {% if service_request.is_provider_selected %}
-            </div>
-            {% endif %}
-            {% endif %}
+        <div class="col-span-1">
+            
+            <!-- Make Offer -->
+            {% if user.user_type == 'serviceprovider' %}
+                {% if not service_request.is_provider_selected %}
+                    <div class="bg-white shadow-lg rounded-lg p-6 mb-8">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Make an Offer</h3>
 
-            {% if offers and not service_request.is_provider_selected %}
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0">Offers</h5>
-                </div>
-                <div class="card-body">
-                    {% for offer in offers %}
-                    <div class="offer-card mb-3">
-                        <p class="mb-2"><strong>{{ offer.provider.get_full_name }}</strong></p>
-                        <p class="mb-2">${{ offer.proposed_cost }}</p>
-                        <p class="mb-2">Date: {{ offer.proposed_date }}</p>
-                        <p class="mb-2">Time Slot: {{ offer.proposed_time_slot }}</p>
-                        <p class="mb-3">{{ offer.notes }}</p>
-                        {% if user == service_request.tenant and service_request.status == 'pending' %}
-                        <form method="post" action="{% url 'services:accept_offer' offer.id %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success btn-sm">Accept Offer</button>
-                        </form>
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} text-gray-800 bg-gray-200 rounded-lg p-4 mb-4">{{ message }}</div>
+                            {% endfor %}
                         {% endif %}
+
+                        <form method="post" action="{% url 'services:submit_offer' service_request.id %}">
+                            {% csrf_token %}
+                            {% if offer_form.non_field_errors %}
+                                <div class="alert alert-danger text-red-500 bg-red-100 rounded-lg p-4 mb-4">
+                                    {{ offer_form.non_field_errors }}
+                                </div>
+                            {% endif %}
+                            {{ offer_form|crispy }}
+                            <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition">Submit Offer</button>
+                        </form>
                     </div>
-                    {% endfor %}
-                </div>
-            </div>
+                {% endif %}
             {% endif %}
         </div>
     </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-{% if chat_room %}
-<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-{% endif %}
 {% endblock %}

@@ -3,136 +3,74 @@
 {% block title %}Service Requests{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Service Requests</h2>
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold text-gray-900">Service Requests</h2>
         {% if user.user_type == 'tenant' %}
-            <a href="{% url 'services:request_create' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> New Request
+            <a href="{% url 'services:request_create' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition">
+                <i class="fas fa-plus mr-2"></i> New Request
             </a>
         {% endif %}
     </div>
 
     {% if requests %}
-        <div class="row">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% for request in requests %}
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">{{ request.title }}</h5>
-                            <span class="badge {% if request.status == 'completed' %}bg-success
-                                             {% elif request.status == 'in_progress' %}bg-info
-                                             {% elif request.status == 'pending' %}bg-warning
-                                             {% else %}bg-secondary{% endif %}">
-                                {{ request.status|title }}
+                <div class="bg-white rounded-lg shadow p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h5 class="text-lg font-medium text-gray-800">{{ request.title }}</h5>
+                        <span class="px-3 py-1 text-sm font-medium rounded-full {% if request.status == 'completed' %}bg-green-100 text-green-800{% elif request.status == 'in_progress' %}bg-blue-100 text-blue-800{% elif request.status == 'pending' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ request.status|title }}
+                        </span>
+                    </div>
+                    <div class="space-y-3 text-gray-600">
+                        <p><span class="font-semibold text-gray-700">Category:</span> {{ request.category.name }}</p>
+                        <p><span class="font-semibold text-gray-700">Priority:</span>
+                            <span class="px-2 py-1 text-sm font-medium rounded-full {% if request.priority == 'high' %}bg-red-100 text-red-800{% elif request.priority == 'medium' %}bg-yellow-100 text-yellow-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ request.priority|title }}
                             </span>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <small class="text-muted">Category:</small>
-                                <span class="ms-2">{{ request.category.name }}</span>
-                            </div>
-                            <div class="mb-3">
-                                <small class="text-muted">Priority:</small>
-                                <span class="ms-2 badge {% if request.priority == 'high' %}bg-danger
-                                                      {% elif request.priority == 'medium' %}bg-warning
-                                                      {% else %}bg-info{% endif %}">
-                                    {{ request.priority|title }}
-                                </span>
-                            </div>
-                            {% if request.provider %}
-                                <div class="mb-3">
-                                    <small class="text-muted">Provider:</small>
-                                    <span class="ms-2">{{ request.provider.username }}</span>
-                                </div>
+                        </p>
+                        {% if request.provider %}
+                            <p><span class="font-semibold text-gray-700">Provider:</span> {{ request.provider.username }}</p>
+                        {% endif %}
+                        {% if request.scheduled_date %}
+                            <p><span class="font-semibold text-gray-700">Scheduled:</span>
+                                {{ request.scheduled_date|date:"M d, Y" }}
+                                {% if request.scheduled_time_slot %} at {{ request.scheduled_time_slot }}{% endif %}
+                            </p>
+                        {% endif %}
+                    </div>
+                    <div class="mt-4 flex justify-between items-center text-gray-500 text-sm">
+                        <span>Created {{ request.created_at|timesince }} ago</span>
+                        <div class="space-x-2">
+                            <a href="{% url 'services:request_detail' request.pk %}" class="text-blue-600 hover:underline">View Details</a>
+                            {% if user.user_type == 'serviceprovider' %}
+                                <a href="{% url 'services:submit_offer_view' request.id %}" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg shadow hover:bg-blue-700 transition">Submit Offer</a>
                             {% endif %}
-                            {% if request.scheduled_date %}
-                                <div class="mb-3">
-                                    <small class="text-muted">Scheduled:</small>
-                                    <span class="ms-2">
-                                        {{ request.scheduled_date|date:"M d, Y" }}
-                                        {% if request.scheduled_time_slot %}
-                                            at {{ request.scheduled_time_slot }}
-                                        {% endif %}
-                                    </span>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="card-footer bg-transparent">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">
-                                    Created {{ request.created_at|timesince }} ago
-                                </small>
-                                <div class="btn-group">
-                                    <a href="{% url 'services:request_detail' request.pk %}" 
-                                       class="btn btn-sm btn-outline-primary">
-                                        View Details
-                                    </a>
-                                    {% if user.user_type == 'serviceprovider' %}
-                                        <a href="{% url 'services:submit_offer_view' request.id %}" class="btn btn-primary">Submit Offer</a>
-                                    {% endif %}
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
-
-        {% if requests.has_other_pages %}
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if requests.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ requests.previous_page_number }}">
-                                Previous
-                            </a>
-                        </li>
-                    {% endif %}
-
-                    {% for num in requests.paginator.page_range %}
-                        {% if requests.number == num %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
-                        {% else %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if requests.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ requests.next_page_number }}">
-                                Next
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% endif %}
     {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-            <h4>No Service Requests</h4>
+        <div class="text-center py-10">
+            <i class="fas fa-clipboard-list text-5xl text-gray-400 mb-4"></i>
+            <h4 class="text-xl font-medium text-gray-800">No Service Requests</h4>
             {% if user.user_type == 'tenant' %}
-                <p class="text-muted">You haven't created any service requests yet.</p>
-                <a href="{% url 'services:request_create' %}" class="btn btn-primary">
-                    Create Your First Request
-                </a>
+                <p class="text-gray-600">You haven't created any service requests yet.</p>
+                <a href="{% url 'services:request_create' %}" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition">Create Your First Request</a>
             {% else %}
-                <p class="text-muted">No service requests available at this time.</p>
+                <p class="text-gray-600">No service requests available at this time.</p>
             {% endif %}
         </div>
     {% endif %}
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Removed existing offer submission form JavaScript code
-});
-</script>
+{% block extra_css %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
 {% endblock %}

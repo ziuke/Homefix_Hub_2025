@@ -25,7 +25,7 @@ class ServiceProviderRegistrationForm(UserCreationForm):
     service_location = forms.CharField(max_length=255)
     categories = forms.ModelMultipleChoiceField(
         queryset=ServiceCategory.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple,  # Change to SelectMultiple if needed
         required=True,
         help_text="Select the service categories you provide"
     )
@@ -41,13 +41,13 @@ class ServiceProviderRegistrationForm(UserCreationForm):
         user.user_type = 'serviceprovider'
         if commit:
             user.save()
-            ServiceProviderProfile.objects.create(
+            profile = ServiceProviderProfile.objects.create(
                 user=user,
                 service_location=self.cleaned_data.get('service_location'),
                 certifications=self.cleaned_data.get('certifications')
             )
+            profile.categories.set(self.cleaned_data.get('categories'))  # Ensure many-to-many relationships are saved
         return user
-
 class CustomPasswordResetForm(PasswordResetForm):
     def clean_email(self):
         email = self.cleaned_data['email']

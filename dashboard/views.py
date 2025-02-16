@@ -81,6 +81,7 @@ def approve_user(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
     if request.method == 'POST':
         user.is_approved = True
+        user.is_active = True
         user.save()
         
         # Create approval log

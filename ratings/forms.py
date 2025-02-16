@@ -2,15 +2,15 @@ from django import forms
 from .models import ServiceReview
 
 class ServiceReviewForm(forms.ModelForm):
+    rating = forms.ChoiceField(
+    choices=[(i, str(i)) for i in range(1, 6)],
+    widget=forms.RadioSelect,
+    label='Rating (1-5 stars)'
+    )
     class Meta:
         model = ServiceReview
         fields = ['rating', 'comment']
         widgets = {
-            'rating': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '1',
-                'max': '5'
-            }),
             'comment': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': '4',
@@ -18,6 +18,5 @@ class ServiceReviewForm(forms.ModelForm):
             })
         }
         labels = {
-            'rating': 'Rating (1-5 stars)',
             'comment': 'Your Review'
         }

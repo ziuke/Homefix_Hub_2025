@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.mail import send_mail
@@ -8,6 +8,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
+from django.http import HttpResponse
 from .forms import TenantRegistrationForm, ServiceProviderRegistrationForm, CustomPasswordResetForm
 from .models import CustomUser
 from services.models import ServiceRequest, ProviderProfile
@@ -37,7 +38,9 @@ def register_tenant(request):
     if request.method == 'POST':
         form = TenantRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
             send_verification_email(request, user)
             messages.success(request, 'Registration successful. Please check your email to verify your account.')
             return redirect('login')
@@ -49,7 +52,9 @@ def register_service_provider(request):
     if request.method == 'POST':
         form = ServiceProviderRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
             # Create provider profile
             provider_profile = ProviderProfile.objects.create(
                 user=user,
@@ -96,12 +101,25 @@ def verify_email(request, uidb64, token):
 
     if user is not None and default_token_generator.check_token(user, token):
         user.is_email_verified = True
+        user.is_active = False
         user.save()
         messages.success(request, 'Your email has been verified. You can now log in.')
     else:
         messages.error(request, 'The verification link is invalid or has expired.')
     
     return redirect('login')
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            if user.is_email_verified != 1:
+                return HttpResponse('Email verification required. Please verify your email to log in.')
+            login(request, user)
+            return redirect('dashboard:home')
+    return render(request, 'users/login.html')
 
 @login_required
 def profile(request):
@@ -142,6 +160,7 @@ def approve_user(request, user_id):
     try:
         user = CustomUser.objects.get(id=user_id)
         user.is_approved = True
+        user.is_active = True
         user.save()
         messages.success(request, f'User {user.username} has been approved.')
     except CustomUser.DoesNotExist:

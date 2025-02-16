@@ -1,165 +1,158 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}HomeFix{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     {% block extra_css %}{% endblock %}
-    <style>
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        .auth-form {
-            max-width: 500px;
-            margin: 2rem auto;
-            padding: 2rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .hero-section {
-            background-color: #f8f9fa;
-            padding: 4rem 0;
-            margin-bottom: 2rem;
-        }
-        .profile-card {
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-    </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-home"></i> HomeFix
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    {% if user.is_authenticated %}
-                        {% if user.user_type == 'tenant' %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'services:request_list' %}">
-                                    <i class="fas fa-clipboard-list"></i> My Requests
+<body class="h-full font-sans antialiased bg-gray-50">
+    <nav class="bg-white shadow">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 justify-between">
+                <div class="flex">
+                    <a href="{% url 'home' %}" class="flex shrink-0 items-center">
+                        <i class="fas fa-home text-indigo-600 text-2xl"></i>
+                        <span class="ml-2 text-xl font-bold text-gray-900">HomeFix</span>
+                    </a>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        {% if user.is_authenticated %}
+                            {% if user.user_type == 'tenant' %}
+                                <a href="{% url 'services:request_list' %}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
+                                    <i class="fas fa-clipboard-list mr-2"></i> My Requests
                                 </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'services:search_providers' %}">
-                                    <i class="fas fa-search"></i> Find Providers
+                                <a href="{% url 'services:search_providers' %}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
+                                    <i class="fas fa-search mr-2"></i> Find Providers
                                 </a>
-                            </li>
-                        {% elif user.user_type == 'serviceprovider' %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'services:provider_dashboard' %}">
-                                    <i class="fas fa-th-large"></i> Dashboard
+                            {% elif user.user_type == 'serviceprovider' %}
+                                <a href="{% url 'services:provider_dashboard' %}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
+                                    <i class="fas fa-th-large mr-2"></i> Dashboard
                                 </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'services:request_list' %}">
-                                    <i class="fas fa-tools"></i> Service Requests
+                                <a href="{% url 'services:request_list' %}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
+                                    <i class="fas fa-tools mr-2"></i> Service Requests
                                 </a>
-                            </li>
-                        {% elif user.user_type == 'admin' %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'dashboard:home' %}">
-                                    <i class="fas fa-chart-line"></i> Admin Dashboard
+                            {% elif user.user_type == 'admin' %}
+                                <a href="{% url 'dashboard:home' %}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
+                                    <i class="fas fa-chart-line mr-2"></i> Admin Dashboard
                                 </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'dashboard:pending_approvals' %}">
-                                    <i class="fas fa-user-check"></i> Approvals
+                                <a href="{% url 'dashboard:pending_approvals' %}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
+                                    <i class="fas fa-user-check mr-2"></i> Approvals
                                 </a>
-                            </li>
+                                
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                </ul>
-                <ul class="navbar-nav">
+                    </div>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center">
                     {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
-                               data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle"></i> {{ user.username }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'profile' %}">
-                                        <i class="fas fa-id-card"></i> Profile
-                                    </a>
-                                </li>
+                        <div class="relative ml-3" x-data="{ open: false }">
+                            <button @click="open = !open" class="flex items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <i class="fas fa-user-circle text-gray-400 text-2xl"></i>
+                                <span class="ml-2 text-gray-700">{{ user.username }}</span>
+                                <i class="fas fa-chevron-down ml-2 text-gray-400"></i>
+                            </button>
+                            <div x-show="open" @click.away="open = false" class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-id-card mr-2"></i> Profile
+                                </a>
                                 {% if user.user_type == 'serviceprovider' %}
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'services:provider_profile' user.id %}">
-                                            <i class="fas fa-briefcase"></i> Provider Profile
-                                        </a>
-                                    </li>
+                                    <a href="{% url 'services:provider_profile' user.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-briefcase mr-2"></i> Provider Profile
+                                    </a>
                                 {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'logout' %}">
-                                        <i class="fas fa-sign-out-alt"></i> Logout
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
+                                <div class="border-t border-gray-100"></div>
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                </a>
+                                <a class="nav-link" href="{% url 'chat:notification_center' %}">Notifications</a>
+                            </div>
+                            
+                        </div>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">
-                                <i class="fas fa-sign-in-alt"></i> Login
-                            </a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="registerDropdown" role="button" 
-                               data-bs-toggle="dropdown">
-                                <i class="fas fa-user-plus"></i> Register
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'register_tenant' %}">
-                                        <i class="fas fa-home"></i> Register as Tenant
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'register_service_provider' %}">
-                                        <i class="fas fa-tools"></i> Register as Provider
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
+                        <a href="{% url 'login' %}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Login
+                        </a>
+                        <div class="relative ml-3" x-data="{ open: false }">
+                            <button @click="open = !open" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                <i class="fas fa-user-plus mr-2"></i> Register
+                                <i class="fas fa-chevron-down ml-2"></i>
+                            </button>
+                            <div x-show="open" @click.away="open = false" class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+                                <a href="{% url 'register_tenant' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-home mr-2"></i> Register as Tenant
+                                </a>
+                                <a href="{% url 'register_service_provider' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-tools mr-2"></i> Register as Provider
+                                </a>
+                            </div>
+                        </div>
                     {% endif %}
-                </ul>
+                </div>
             </div>
         </div>
     </nav>
 
     {% if messages %}
-        <div class="container mt-3">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-4">
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="rounded-md {% if message.tags == 'success' %}bg-green-50{% else %}bg-red-50{% endif %} p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            {% if message.tags == 'success' %}
+                                <i class="fas fa-check-circle text-green-400"></i>
+                            {% else %}
+                                <i class="fas fa-exclamation-circle text-red-400"></i>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm {% if message.tags == 'success' %}text-green-700{% else %}text-red-700{% endif %}">
+                                {{ message }}
+                            </p>
+                        </div>
+                        <div class="ml-auto pl-3">
+                            <div class="-mx-1.5 -my-1.5">
+                                <button type="button" class="inline-flex rounded-md {% if message.tags == 'success' %}bg-green-50 text-green-500 hover:bg-green-100{% else %}bg-red-50 text-red-500 hover:bg-red-100{% endif %} p-1.5">
+                                    <span class="sr-only">Dismiss</span>
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             {% endfor %}
         </div>
     {% endif %}
 
-    <div class="container">
+    <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {% block content %}
         {% endblock %}
-    </div>
+    </main>
 
-    <footer class="footer mt-5 py-3 bg-light">
-        <div class="container text-center">
-            <span class="text-muted"> 2025 HomeFix. All rights reserved.</span>
+    <footer class="bg-white mt-auto">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center text-sm text-gray-500">
+                © 2025 HomeFix. All rights reserved.
+            </div>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

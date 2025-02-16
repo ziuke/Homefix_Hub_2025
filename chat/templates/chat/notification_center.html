@@ -1,0 +1,24 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+<h2>Your Notifications</h2>
+
+<ul>
+    {% for notification in notifications %}
+        <li>{{ notification.message }} - {{ notification.created_at|date:"M d, Y H:i" }}</li>
+    {% empty %}
+        <li>No new notifications.</li>
+    {% endfor %}
+</ul>
+
+<h3>Unread Chat Messages</h3>
+<ul>
+    {% for chat in unread_messages %}
+        <li>
+            Chat Room: {{ chat.room.name }} - Unread Messages: {{ chat.count }}
+        </li>
+    {% empty %}
+        <li>No unread messages.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

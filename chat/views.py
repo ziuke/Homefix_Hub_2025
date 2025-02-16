@@ -6,7 +6,7 @@ from django.utils import timezone
 from .models import ChatRoom, Message
 from services.models import ServiceRequest
 import json
-
+from .models import Notification    
 # Create your views here.
 
 @login_required
@@ -84,3 +84,24 @@ def send_message(request, chat_room_id):
         return JsonResponse({'error': 'Invalid JSON data'}, status=400)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+def notification_center(request):
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Fetch unread chat messages
+    chat_rooms = ChatRoom.objects.filter(participants=request.user)  # Adjust based on your chat model
+    unread_messages = []
+    
+    for room in chat_rooms:
+        messages = Message.objects.filter(chat_room=room, is_read=False)  # Adjust based on your message model
+        if messages.exists():
+            unread_messages.append({
+                'room': room,
+                'count': messages.count()
+            })
+    
+    return render(request, 'chat/notification_center.html', {
+        'notifications': notifications,
+        'unread_messages': unread_messages,
+    })

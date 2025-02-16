@@ -106,7 +106,7 @@
                 </div>
             </div>
 
-            <!-- Service Offers -->
+            <!-- Service Offers
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Service Offers</h5>
@@ -114,6 +114,7 @@
                 <div class="card-body">
                     {% if offers %}
                         {% for offer in offers %}
+                            {% if offer.status == 'completed' %}
                             <div class="border-bottom mb-3 pb-3">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
@@ -141,6 +142,7 @@
                                     <p class="mb-0"><small>{{ offer.notes }}</small></p>
                                 {% endif %}
                             </div>
+                            {% endif %}
                         {% endfor %}
                     {% else %}
                         <p class="text-muted text-center mb-0">No offers received yet</p>
@@ -168,7 +170,7 @@
                     </div>
                 </div>
             {% endif %}
-        </div>
+        </div> -->
 
         <div class="col-md-4">
             <!-- Tenant Info -->

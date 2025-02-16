@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q, Avg
 from django.utils import timezone
+import json
 from django.contrib import messages
 from .models import (
     ServiceRequest, ServiceOffer, ProviderProfile, 
@@ -172,26 +173,37 @@ def accept_offer(request, offer_id):
 
 @login_required
 def update_request_status(request, pk):
+    print(f"Received request to update status for request ID: {pk}")  # Debugging statement
+
     service_request = get_object_or_404(ServiceRequest, pk=pk)
     if request.user != service_request.provider:
+        print("Unauthorized access attempt")  # Debugging statement
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     if request.method != 'POST':
+        print("Invalid request method")  # Debugging statement
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
     try:
         data = json.loads(request.body)
         new_status = data.get('status')
+        print(f"New status received: {new_status}")  # Debugging statement
     except json.JSONDecodeError:
+        print("Invalid JSON received")  # Debugging statement
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
     if new_status in ['in_progress', 'completed']:
         service_request.status = new_status
         if new_status == 'completed':
             service_request.completed_at = timezone.now()
+            print("Status updated to completed")  # Debugging statement
         service_request.save()
+        print("Service request saved successfully")  # Debugging statement
         return JsonResponse({'status': 'success'})
+    
+    print("Invalid status received")  # Debugging statement
     return JsonResponse({'error': 'Invalid status'}, status=400)
+
 
 @login_required
 def submit_review(request, pk):

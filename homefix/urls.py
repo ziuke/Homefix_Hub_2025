@@ -28,4 +28,5 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('ratings/', include('ratings.urls', namespace='ratings')),
     path('chat/', include('chat.urls')),
+    path('dashboard/', include('dashboard.urls', namespace='dashboard')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
