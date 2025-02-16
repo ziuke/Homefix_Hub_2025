@@ -6,6 +6,11 @@ from services.models import ServiceRequest
 # Create your models here.
 
 class ServiceReview(models.Model):
+    provider = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='service_requests'
+    )
     service_request = models.OneToOneField(
         ServiceRequest,
         on_delete=models.CASCADE,

@@ -6,6 +6,9 @@ from django.db.models import Avg
 from services.models import ServiceRequest
 from .models import ServiceReview
 from .forms import ServiceReviewForm
+from django.shortcuts import render, get_object_or_404
+from services.models import CustomUser  # Assuming CustomUser is your user model
+from .models import ServiceReview
 
 # Create your views here.
 
@@ -64,13 +67,26 @@ def edit_review(request, review_id):
     })
 
 def provider_reviews(request, provider_id):
-    reviews = ServiceReview.objects.filter(
-        service_request__provider_id=provider_id
-    ).select_related('reviewer', 'service_request', 'service_request__category')
-    
-    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg']
-    
-    return render(request, 'ratings/provider_reviews.html', {
+    provider = get_object_or_404(CustomUser, id=provider_id)
+    reviews = ServiceReview.objects.filter(service_request__provider=provider)
+
+    print(f"Provider: {provider.username}, Reviews Count: {reviews.count()}")  # Debugging line
+
+    context = {
+        'provider': provider,
         'reviews': reviews,
-        'avg_rating': avg_rating
-    })
+    }
+    return render(request, 'ratings/provider_reviews.html', context)
+def provider_profile(request, provider_id):
+    # Get the provider user (CustomUser)
+    provider = get_object_or_404(CustomUser, id=provider_id)
+    
+    # Fetch all reviews made for this provider
+    reviews = ServiceReview.objects.filter(service_request__provider=provider)
+
+    context = {
+        'provider': provider,
+        'reviews': reviews,
+    }
+
+    return render(request, 'provider_profile.html', context)

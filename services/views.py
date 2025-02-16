@@ -17,7 +17,9 @@ from .forms import (
 from ratings.forms import ServiceReviewForm
 from ratings.models import ServiceReview
 from chat.models import ChatRoom
-
+from users.models import CustomUser
+from django.contrib.auth.models import User
+from django.db.models import Avg
 @login_required
 def service_request_create(request):
     if request.method == 'POST':
@@ -297,30 +299,30 @@ def search_providers(request):
     }
     return render(request, 'services/provider_search.html', context)
 
-@login_required
 def provider_profile(request, pk):
-    provider = get_object_or_404(CustomUser, pk=pk, user_type='serviceprovider')
-    try:
-        profile = ProviderProfile.objects.get(user=provider)
-    except ProviderProfile.DoesNotExist:
-        profile = ProviderProfile.objects.create(user=provider)
-    
-    reviews = ServiceReview.objects.filter(
-        service_request__provider=provider
-    ).select_related(
-        'reviewer', 'service_request', 'service_request__category'
-    ).order_by('-created_at')
-    
-    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg']
-    profile.avg_rating = avg_rating
-    
-    context = {
-        'provider': provider,
-        'profile': profile,
-        'reviews': reviews
-    }
-    return render(request, 'services/provider_profile.html', context)
+    provider = get_object_or_404(CustomUser, pk=pk)  # Get provider
+    reviews = ServiceReview.objects.filter(service_request__provider=provider)  # Get reviews
+    service_offers = ServiceOffer.objects.filter(provider=provider)  # Get offers made by provider
+    providers = ProviderProfile.objects.select_related('user').prefetch_related(
+        'categories'
+    ).filter(user__user_type='serviceprovider')
+    # Calculate average rating for each provider using service requests
+    for i in providers:
+        reviews = ServiceReview.objects.filter(
+            service_request__provider=i.user
+        ).select_related('service_request')
+        
+        avg_rating = reviews.aggregate(Avg('rating'))['rating__avg']
+        total_reviews = reviews.count()
+        i.avg_rating = avg_rating or 0
 
+    return render(request, 'services/provider_profile.html', {
+        'provider': provider, 
+        'reviews': reviews, 
+        'service_offers': service_offers,
+        'avg_rating': avg_rating,
+        'total_reviews': total_reviews
+    })
 @login_required
 def provider_dashboard(request):
     if request.user.user_type != 'serviceprovider':

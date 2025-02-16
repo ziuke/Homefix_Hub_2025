@@ -204,7 +204,7 @@ def approval_logs(request):
 @user_passes_test(is_admin)
 def service_categories(request):
     categories = ServiceCategory.objects.annotate(
-        request_count=Count('servicerequest')
+        request_count=Count('service_requests')
     ).order_by('-request_count')
     
     context = {

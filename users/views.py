@@ -11,10 +11,10 @@ from django.urls import reverse
 from django.http import HttpResponse
 from .forms import TenantRegistrationForm, ServiceProviderRegistrationForm, CustomPasswordResetForm
 from .models import CustomUser
-from services.models import ServiceRequest, ProviderProfile
+from services.models import ServiceRequest, ProviderProfile, ServiceReview, ServiceCategory
 from .forms import TenantProfileForm, ServiceProviderProfileForm
 from .models import TenantProfile, ServiceProviderProfile
-from services.models import ServiceCategory
+from django.contrib.auth.models import User
 def home(request):
     context = {}
     if request.user.is_authenticated:
@@ -209,12 +209,16 @@ def provider_profile_view(request):
         return render(request, 'users/no_profile.html', {'message': 'Profile not found.'})
 
     # Ensure service_provided is a list of IDs
-    service_provided_ids = profile.service_provided.values_list('id', flat=True)  # Adjust this line
+    service_provided_ids = profile.service_provided.values_list('id', flat=True)  
 
     # Fetch the service_provided as actual ServiceCategory objects
     service_provided = ServiceCategory.objects.filter(id__in=service_provided_ids)
 
-    return render(request, 'users/service_provider_profile.html', {
+    # Fetch reviews for the provider
+    reviews = ServiceReview.objects.filter(service_request__provider=profile)
+
+    return render(request, 'services/provider_profile.html', {
         'profile': profile,
+        'reviews': reviews,
         'service_provided': service_provided
     })
