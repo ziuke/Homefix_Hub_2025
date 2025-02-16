@@ -1,7 +1,13 @@
 from django import forms
-from .models import ServiceRequest, ServiceOffer, ServiceReview, ServiceMessage, ProviderProfile
+from .models import ServiceRequest, ServiceOffer, ServiceReview, ServiceMessage, ProviderProfile, ServiceCategory
 
 class ServiceRequestForm(forms.ModelForm):
+    category = forms.ModelMultipleChoiceField(
+        queryset=ServiceCategory.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True
+    )
+
     class Meta:
         model = ServiceRequest
         fields = ['category', 'title', 'description', 'location', 'priority']
@@ -11,20 +17,35 @@ class ServiceRequestForm(forms.ModelForm):
 
 class ServiceOfferForm(forms.ModelForm):
     proposed_cost = forms.DecimalField(
-        max_digits=10, 
+        max_digits=10,
         decimal_places=2,
-        help_text="Enter the proposed cost for this service"
+        help_text="Enter the proposed cost for this service",
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',  # Bootstrap styling
+            'placeholder': 'Enter cost'
+        })
     )
     proposed_date = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date'}),
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control'
+        }),
         help_text="Select the proposed date for the service"
     )
     proposed_time_slot = forms.CharField(
         max_length=50,
-        help_text="e.g., 'Morning (9AM-12PM)', 'Afternoon (1PM-5PM)'"
+        help_text="e.g., 'Morning (9AM-12PM)', 'Afternoon (1PM-5PM)'",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter time slot'
+        })
     )
     notes = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 3}),
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Additional details (optional)'
+        }),
         required=False,
         help_text="Additional details about your offer (optional)"
     )

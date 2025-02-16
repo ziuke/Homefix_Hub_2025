@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
-
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = (
         ('tenant', 'Tenant'),
@@ -24,16 +23,16 @@ class CustomUser(AbstractUser):
         return self.username
 
 class TenantProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='tenant_profile')
+    user = models.OneToOneField("CustomUser", on_delete=models.CASCADE, related_name='tenant_profile')
     location = models.CharField(max_length=255)
 
     def __str__(self):
         return f"{self.user.username}'s Tenant Profile"
 
 class ServiceProviderProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='provider_profile')
+    user = models.OneToOneField("users.CustomUser", on_delete=models.CASCADE, related_name='provider_profile')
     service_location = models.CharField(max_length=255)
-    service_provided = models.CharField(max_length=255)
+    service_provided = models.ManyToManyField("services.ServiceCategory", related_name='service_provided')
     certifications = models.TextField(blank=True)
 
     def __str__(self):

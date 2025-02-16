@@ -4,26 +4,51 @@
 {% block title %}Find Service Providers{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Find Service Providers</h2>
-
-    <div class="row">
+<div class="max-w-5xl mx-auto mt-10">
+    <h2 class="text-2xl font-bold text-center text-gray-900 mb-6">Find Service Providers</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <!-- Search Filters -->
-        <div class="col-md-3">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Search Filters</h5>
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h5 class="text-lg font-semibold text-gray-900 mb-4">Search Filters</h5>
+            <form id="providerSearchForm" method="get" class="space-y-4">
+                <!-- Category Dropdown -->
+                <div>
+                    <label for="id_category" class="block text-sm font-medium text-gray-700">Category</label>
+                    <select id="id_category" name="category" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">Select a Category</option>
+                        {% for category in form.category.field.choices %}
+                            <option value="{{ category.0 }}">{{ category.1 }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="card-body">
-                    <form id="providerSearchForm" method="get">
-                        {{ form|crispy }}
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-search"></i> Search
-                        </button>
-                    </form>
+
+                <!-- Rating Dropdown -->
+                <div>
+                    <label for="id_rating" class="block text-sm font-medium text-gray-700">Rating</label>
+                    <select id="id_rating" name="rating" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">Select a Rating</option>
+                        {% for rating in form.rating.field.choices %}
+                            <option value="{{ rating.0 }}">{{ rating.1 }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-            </div>
+
+                <!-- Location Input -->
+                <div>
+                    <label for="id_location" class="block text-sm font-medium text-gray-700">Location</label>
+                    <input type="text" id="id_location" name="location" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter location">
+                </div>
+
+                <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
         </div>
+    </div>
+</div>
+
+
 
         <!-- Search Results -->
         <div class="col-md-9">

@@ -24,10 +24,14 @@ class TenantProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'location')
     search_fields = ('user__username', 'location')
 
-class ServiceProviderProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'service_location', 'service_provided')
-    search_fields = ('user__username', 'service_location', 'service_provided')
 
-admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(TenantProfile, TenantProfileAdmin)
+
+class ServiceProviderProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'service_location', 'get_services')
+
+    def get_services(self, obj):
+        return ", ".join([service.name for service in obj.service_provided.all()])
+
+    get_services.short_description = 'Services Provided'
+
 admin.site.register(ServiceProviderProfile, ServiceProviderProfileAdmin)

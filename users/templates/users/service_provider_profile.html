@@ -3,46 +3,75 @@
 {% block title %}Service Provider Profile{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card profile-card">
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <i class="fas fa-user-tie fa-5x text-primary"></i>
-                        <h2 class="mt-3">{{ user.username }}</h2>
-                        <p class="text-muted">Service Provider</p>
-                        {% if not user.is_approved %}
-                            <div class="alert alert-warning">
-                                Your account is pending approval from admin.
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Email:</strong> {{ user.email }}</p>
-                            <p><strong>Phone:</strong> {{ user.phone_number }}</p>
-                            <p><strong>Service Location:</strong> {{ profile.service_location }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Service Provided:</strong> {{ profile.service_provided }}</p>
-                            <p><strong>Status:</strong> 
-                                {% if user.is_approved %}
-                                    <span class="badge bg-success">Approved</span>
-                                {% else %}
-                                    <span class="badge bg-warning">Pending Approval</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-                    {% if profile.certifications %}
-                        <div class="mt-4">
-                            <h4>Certifications</h4>
-                            <p>{{ profile.certifications|linebreaks }}</p>
-                        </div>
-                    {% endif %}
+<div class="max-w-4xl mx-auto mt-10">
+    <div class="bg-white shadow-lg rounded-lg p-8">
+        <!-- Profile Header -->
+        <div class="text-center">
+            <div class="flex items-center justify-center">
+                <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user-tie text-gray-500 text-6xl"></i>
                 </div>
             </div>
+            <h2 class="text-2xl font-semibold text-gray-900 mt-4">{{ user.username }}</h2>
+            <p class="text-gray-500">Service Provider</p>
+
+            {% if not user.is_approved %}
+            <div class="mt-3 px-4 py-2 bg-yellow-100 text-yellow-800 text-sm rounded-md">
+                <i class="fas fa-exclamation-triangle"></i> Your account is pending approval from the admin.
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Profile Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                <p class="text-sm font-medium text-gray-500">Email</p>
+                <p class="text-gray-900 font-semibold">{{ user.email }}</p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                <p class="text-sm font-medium text-gray-500">Phone</p>
+                <p class="text-gray-900 font-semibold">{{ user.phone_number }}</p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                <p class="text-sm font-medium text-gray-500">Service Location</p>
+                <p class="text-gray-900 font-semibold">{{ profile.service_location }}</p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                <p class="text-sm font-medium text-gray-500">Service Provided</p>
+                <ul class="text-gray-900 font-semibold">
+                    {% for service in profile.service_provided.all %}
+                        <li>{{ service.name }}</li>
+                    {% empty %}
+                        <li>No services provided</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                <p class="text-sm font-medium text-gray-500">Status</p>
+                <span class="inline-block px-3 py-1 text-sm font-medium rounded-full 
+                    {% if user.is_approved %} bg-green-100 text-green-700 {% else %} bg-yellow-100 text-yellow-700 {% endif %}">
+                    {% if user.is_approved %} Approved {% else %} Pending Approval {% endif %}
+                </span>
+            </div>
+        </div>
+
+        {% if profile.certifications %}
+        <div class="mt-6">
+            <h4 class="text-lg font-semibold text-gray-900">Certifications</h4>
+            <p class="text-gray-700">{{ profile.certifications|linebreaks }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="mt-6 flex justify-center">
+            <a href="{% url 'edit_profile' %}" class="px-6 py-2 text-white bg-indigo-600 hover:bg-indigo-700 text-sm font-medium rounded-md shadow-md">
+                <i class="fas fa-edit"></i> Edit Profile
+            </a>
         </div>
     </div>
 </div>

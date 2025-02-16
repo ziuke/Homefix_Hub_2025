@@ -1,84 +1,88 @@
 {% extends 'users/base.html' %}
-
+{% load widget_tweaks %}
 {% block title %}
     {% if is_edit %}Edit Review{% else %}Write a Review{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        {% if is_edit %}
-                            Edit Your Review
-                        {% else %}
-                            Write a Review for {{ service_request.provider.get_full_name }}
-                        {% endif %}
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <h6>Service Details</h6>
-                        <p class="mb-1"><strong>Service:</strong> {{ service_request.category.name }}</p>
-                        <p class="mb-1"><strong>Completed:</strong> {{ service_request.completed_at|date:"M d, Y" }}</p>
-                    </div>
-
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <div class="rating-input">
-                                <label class="form-label">{{ form.rating.label }}</label>
-                                <div class="star-rating">
-                                    {% for i in "12345" %}
-                                        <input type="radio" name="rating" value="{{ i }}" 
-                                               id="star{{ i }}" {% if form.rating.value == i %}checked{% endif %}>
-                                        <label for="star{{ i }}" class="star">★</label>
-                                    {% endfor %}
-                                </div>
-                                {% if form.rating.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.rating.errors.0 }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">{{ form.comment.label }}</label>
-                            {{ form.comment }}
-                            {% if form.comment.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.comment.errors.0 }}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                {% if is_edit %}Update{% else %}Submit{% endif %} Review
-                            </button>
-                            <a href="{% url 'services:request_detail' pk=service_request.id %}" 
-                               class="btn btn-outline-secondary">Cancel</a>
-                        </div>
-                    </form>
-                </div>
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
+            <h2 class="text-lg font-semibold text-gray-800">
+                {% if is_edit %}
+                    Edit Your Review
+                {% else %}
+                    Write a Review for {{ service_request.provider.get_full_name }}
+                {% endif %}
+            </h2>
+        </div>
+        
+        <div class="p-6">
+            <!-- Service Details -->
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-700 mb-2">Service Details</h3>
+                <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Service:</span> {{ service_request.category.name }}</p>
+                <p class="text-sm text-gray-600"><span class="font-medium">Completed:</span> {{ service_request.completed_at|date:"M d, Y" }}</p>
             </div>
+
+            <form method="post">
+                {% csrf_token %}
+                
+
+                <!-- Rating Input -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.rating.label }}</label>
+                    <div class="star-rating">
+                        {% for i in "54321" %}
+                            <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" 
+                                   {% if form.rating.value == i %}checked{% endif %}>
+                            <label for="star{{ i }}" class="star">★</label>
+                        {% endfor %}
+                    </div>
+                    {% if form.rating.errors %}
+                        <p class="mt-1 text-sm text-red-600">
+                            {{ form.rating.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Comment Input -->
+                <div class="mb-6">
+                    <label for="{{ form.comment.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.comment.label }}
+                    </label>
+                    {{ form.comment|add_class:"w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" }}
+                    {% if form.comment.errors %}
+                        <p class="mt-1 text-sm text-red-600">
+                            {{ form.comment.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="flex flex-col space-y-3">
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                        {% if is_edit %}Update{% else %}Submit{% endif %} Review
+                    </button>
+                    <a href="{% url 'services:request_detail' pk=service_request.id %}" 
+                       class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-md text-center transition duration-150 ease-in-out">
+                        Cancel
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_css %}
+!-- CSS stays the same -->
 <style>
     .star-rating {
         display: inline-flex;
         flex-direction: row-reverse;
-        font-size: 1.5rem;
+        font-size: 1.875rem;
         justify-content: flex-end;
-        padding: 0 0.2em;
     }
 
     .star-rating input {
@@ -86,21 +90,21 @@
     }
 
     .star-rating label {
-        color: #ddd;
+        color: #e5e7eb;
         cursor: pointer;
-        padding: 0 0.1em;
+        padding: 0 0.125rem;
         transition: color 0.2s ease-in-out;
     }
 
     .star-rating label:hover,
     .star-rating label:hover ~ label,
     .star-rating input:checked ~ label {
-        color: #ffd700;
+        color: #fbbf24;
     }
 
     .star-rating label:hover,
     .star-rating label:hover ~ label {
-        color: #ffed4a;
+        color: #fcd34d;
     }
 </style>
 {% endblock %}

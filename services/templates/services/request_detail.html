@@ -1,182 +1,328 @@
 {% extends 'users/base.html' %}
 {% load crispy_forms_tags %}
-
 {% block title %}Service Request Details{% endblock %}
-
 {% block extra_css %}
 <style>
     .chat-container {
-        height: 400px;
+        height: 500px;
         display: flex;
         flex-direction: column;
+    }
+    
+    .collapsible-section {
+        transition: all 0.3s ease;
+    }
+    
+    .section-title {
+        cursor: pointer;
+    }
+    
+    .section-title:hover {
+        color: #4f46e5;
+    }
+    
+    .card {
+        transition: all 0.2s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mx-auto mt-8 px-6">
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-        <!-- Service Request Details -->
-        <div class="col-span-2 bg-white shadow-lg rounded-lg p-6">
-
-            <!-- Request Information -->
-            <div class="mb-6">
-                <h2 class="text-3xl font-semibold text-gray-900">{{ service_request.title }}</h2>
-                <p class="text-sm text-gray-500">Status: <span class="font-medium text-blue-600">{{ service_request.get_status_display }}</span></p>
-                <p class="text-gray-700 mt-2">Description: {{ service_request.description }}</p>
-
-                {% if service_request.provider %}
-                    <p class="mt-4 font-medium">Provider: {{ service_request.provider.username   }}</p>
-                {% endif %}
-                <p class="mt-2 text-sm text-gray-500">Created on: {{ service_request.created_at|date:"M d, Y" }}</p>
-            </div>
-
-            <!-- Chat Section -->
-            {% if chat_room %}
-                <div class="bg-gray-50 shadow-lg rounded-lg p-6 mt-8">
-
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Chat</h3>
-
-                    <div x-data="{
-                        messages: [],
-                        newMessage: '',
-                        currentUserId: {{ request.user.id }},
-                        chatRoomId: {{ chat_room.id }},
-                        init() {
-                            this.loadMessages();
-                            this.startPolling();
-                            this.scrollToBottom();
-                        },
-                        formatDate(dateStr) {
-                            const date = new Date(dateStr);
-                            return date.toLocaleString();
-                        },
-                        scrollToBottom() {
-                            const chatMessages = document.getElementById('chatMessages');
-                            if (chatMessages) {
-                                chatMessages.scrollTop = chatMessages.scrollHeight;
-                            }
-                        },
-                        async loadMessages() {
-                            const response = await fetch(`/chat/${this.chatRoomId}/messages/`);
-                            if (response.ok) {
-                                const data = await response.json();
-                                this.messages = data;
-                                this.$nextTick(() => this.scrollToBottom());
-                            }
-                        },
-                        startPolling() {
-                            setInterval(() => {
-                                this.loadMessages();
-                            }, 3000);
-                        },
-                        async sendMessage() {
-                            if (!this.newMessage.trim()) return;
-
-                            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-                            try {
-                                const response = await fetch(`/chat/${this.chatRoomId}/send/`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRFToken': csrfToken
-                                    },
-                                    body: JSON.stringify({ content: this.newMessage })
-                                });
-
-                                if (response.ok) {
-                                    this.newMessage = '';
-                                    await this.loadMessages();
-                                }
-                            } catch (error) {
-                                console.error('Error sending message:', error);
-                            }
-                        }
-                    }">
-                        <div class="chat-container">
-                            <div id="chatMessages" class="flex flex-col space-y-4 overflow-y-auto p-4 bg-white rounded-lg shadow-inner">
-                                <template x-for="message in messages" :key="message.id">
-                                    <div :class="{'self-end': message.sender_id == currentUserId, 'self-start': message.sender_id != currentUserId}" class="flex flex-col space-y-2">
-                                        <div :class="{'bg-blue-100 text-blue-900': message.sender_id == currentUserId, 'bg-gray-200 text-gray-900': message.sender_id != currentUserId}" class="rounded-lg p-3 max-w-xs">
-                                            <p x-text="message.content"></p>
-                                            <p class="text-xs text-gray-500 mt-1" x-text="formatDate(message.created_at)"></p>
-                                        </div>
-                                    </div>
-                                </template>
+<div class="container mx-auto mt-4 px-4 max-w-7xl">
+    <!-- Main container with flexible layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left column - Main content -->
+        <div class="lg:col-span-12 space-y-6">
+            
+            <!-- Request Header Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <h1 class="text-2xl font-bold text-gray-900">{{ service_request.title }}</h1>
+                        <div class="mt-2 md:mt-0 flex items-center space-x-3">
+                            <span class="px-3 py-1 text-xs font-medium rounded-full {% if service_request.status == 'completed' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ service_request.get_status_display }}
+                            </span>
+                            <span class="px-3 py-1 text-xs font-medium rounded-full {% if service_request.priority == 'high' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ service_request.get_priority_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 space-y-3">
+                        <p class="text-gray-700">
+                            {{ service_request.description }}
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <p class="text-sm text-gray-600">
+                                    <span class="font-medium">Location:</span> {{ service_request.location }}
+                                </p>
+                                
+                                <p class="text-sm text-gray-600 mt-2">
+                                    <span class="font-medium">Created on:</span> {{ service_request.created_at|date:"M d, Y" }}
+                                </p>
+                                
+                                {% if service_request.scheduled_date %}
+                                <p class="text-sm text-gray-600 mt-2">
+                                    <span class="font-medium">Scheduled Date:</span> {{ service_request.scheduled_date|date:"M d, Y" }}
+                                </p>
+                                {% endif %}
+                                
+                                {% if service_request.scheduled_time_slot %}
+                                <p class="text-sm text-gray-600 mt-2">
+                                    <span class="font-medium">Time Slot:</span> {{ service_request.scheduled_time_slot }}
+                                </p>
+                                {% endif %}
                             </div>
-
-                            <div class="mt-4 p-4 bg-gray-50 border-t border-gray-200">
-                                <form @submit.prevent="sendMessage" class="flex items-center gap-4">
-                                    {% csrf_token %}
-                                    <input type="text" x-model="newMessage" class="form-input w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your message...">
-                                    <button type="submit" class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition">Send</button>
-                                </form>
+                            
+                            <div>
+                                {% if service_request.provider %}
+                                <p class="text-sm text-gray-600">
+                                    <span class="font-medium">Assigned Provider:</span> {{ service_request.provider.username }}
+                                </p>
+                                {% else %}
+                                <p class="text-sm text-gray-500 italic">No provider assigned yet.</p>
+                                {% endif %}
+                                
+                                {% if service_request.completed_at %}
+                                <p class="text-sm text-green-600 mt-2">
+                                    <span class="font-medium">Completed on:</span> {{ service_request.completed_at|date:"M d, Y H:i" }}
+                                </p>
+                                {% endif %}
+                                
+                                {% if service_request.estimated_cost %}
+                                <p class="text-sm text-gray-600 mt-2">
+                                    <span class="font-medium">Estimated Cost:</span> ${{ service_request.estimated_cost }}
+                                </p>
+                                {% endif %}
+                                
+                                {% if service_request.actual_cost %}
+                                <p class="text-sm text-gray-600 mt-2">
+                                    <span class="font-medium">Final Cost:</span> ${{ service_request.actual_cost }}
+                                </p>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
-
                 </div>
+            </div>
+            
+            <!-- Service Offers Section - Collapsible -->
+            {% if service_request.offers.all %}
+            <div x-data="{ expanded: true }" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 @click="expanded = !expanded" class="section-title text-lg font-semibold text-gray-900 flex items-center justify-between">
+                        <span>Service Offers ({{ service_request.offers.all|length }})</span>
+                        <svg :class="{'rotate-180': !expanded}" class="w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </h2>
+                </div>
+                
+                <div x-show="expanded" x-transition:enter="transition ease-out duration-300" 
+                     x-transition:enter-start="opacity-0 transform scale-95" 
+                     x-transition:enter-end="opacity-100 transform scale-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 transform scale-100"
+                     x-transition:leave-end="opacity-0 transform scale-95">
+                    <div class="p-6 overflow-x-auto">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for offer in service_request.offers.all %}
+                            <div class="card p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">
+                                            {{ offer.provider.username }}
+                                        </p>
+                                        <p class="text-xs text-gray-500">
+                                            Offer Status: <span class="font-medium">{{ offer.get_status_display }}</span>
+                                        </p>
+                                    </div>
+                                    <span class="text-lg font-bold text-gray-900">${{ offer.proposed_cost }}</span>
+                                </div>
+                                
+                                <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                    <p class="text-gray-600">
+                                        <span class="font-medium">Date:</span> {{ offer.proposed_date|date:"M d, Y" }}
+                                    </p>
+                                    <p class="text-gray-600">
+                                        <span class="font-medium">Time:</span> {{ offer.proposed_time_slot }}
+                                    </p>
+                                </div>
+                                
+                                {% if offer.notes %}
+                                <p class="mt-3 text-sm text-gray-600">
+                                    <span class="font-medium">Notes:</span> {{ offer.notes }}
+                                </p>
+                                {% endif %}
+                                {% if offer.status != 'completed' %}
+                                <form method="POST" action="{% url 'services:accept_offer' offer.id %}" class="mt-4">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition duration-200">
+                                        Accept Offer
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-2">Service Offers</h2>
+                <p class="text-gray-500 italic">No offers have been submitted yet.</p>
+            </div>
             {% endif %}
-
+            
+            <!-- Chat Section -->
+            {% if chat_room %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Chat</h3>
+                </div>
+                
+                <div x-data="{
+                    messages: [],
+                    newMessage: '',
+                    currentUserId: {{ request.user.id }},
+                    chatRoomId: {{ chat_room.id }},
+                    init() {
+                        this.loadMessages();
+                        this.startPolling();
+                        this.scrollToBottom();
+                    },
+                    formatDate(dateStr) {
+                        const date = new Date(dateStr);
+                        return date.toLocaleString();
+                    },
+                    scrollToBottom() {
+                        const chatMessages = document.getElementById('chatMessages');
+                        if (chatMessages) {
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
+                    },
+                    async loadMessages() {
+                        const response = await fetch(`/chat/${this.chatRoomId}/messages/`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.messages = data;
+                            this.$nextTick(() => this.scrollToBottom());
+                        }
+                    },
+                    startPolling() {
+                        setInterval(() => {
+                            this.loadMessages();
+                        }, 3000);
+                    },
+                    async sendMessage() {
+                        if (!this.newMessage.trim()) return;
+                        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                        try {
+                            const response = await fetch(`/chat/${this.chatRoomId}/send/`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': csrfToken
+                                },
+                                body: JSON.stringify({ content: this.newMessage })
+                            });
+                            if (response.ok) {
+                                this.newMessage = '';
+                                await this.loadMessages();
+                            }
+                        } catch (error) {
+                            console.error('Error sending message:', error);
+                        }
+                    }
+                }">
+                    <div class="chat-container">
+                        <div id="chatMessages" class="flex flex-col space-y-4 overflow-y-auto p-4 bg-gray-50">
+                            <template x-for="message in messages" :key="message.id">
+                                <div :class="{'self-end': message.sender_id == currentUserId, 'self-start': message.sender_id != currentUserId}" class="flex flex-col space-y-2 max-w-[80%]">
+                                    <div :class="{'bg-blue-100 text-blue-900': message.sender_id == currentUserId, 'bg-gray-200 text-gray-900': message.sender_id != currentUserId}" class="rounded-lg p-3">
+                                        <p x-text="message.content"></p>
+                                        <p class="text-xs text-gray-500 mt-1" x-text="formatDate(message.created_at)"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="p-4 bg-white border-t border-gray-200">
+                            <form @submit.prevent="sendMessage" class="flex items-center gap-2">
+                                {% csrf_token %}
+                                <input type="text" x-model="newMessage" class="flex-1 form-input p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your message...">
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition duration-200">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
             <!-- Review Section -->
             {% if service_request.status == 'completed' %}
                 {% if service_request.review %}
-                    <div class="bg-white shadow-lg rounded-lg p-6 mt-8">
-                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Review</h3>
-                        <div class="flex items-center mb-2">
-                            <div class="text-yellow-500">
-                                {% for i in "12345"|make_list %}
-                                    {% if forloop.counter <= service_request.review.rating %}
-                                        <i class="fas fa-star"></i>
-                                    {% else %}
-                                        <i class="far fa-star"></i>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <p>{{ service_request.review.comment }}</p>
-                        <small class="text-sm text-gray-500">Posted on {{ service_request.review.created_at }}</small>
-                    </div>
-                {% else %}
-                    <div class="bg-white shadow-lg rounded-lg p-6 mt-8">
-                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Review</h3>
-                        <a href="{% url 'ratings:create_review' service_request_id=service_request.id %}">Submit a Review</a>
-                    </div>
-                {% endif %}
-            {% endif %}
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-span-1">
-            
-            <!-- Make Offer -->
-            {% if user.user_type == 'serviceprovider' %}
-                {% if not service_request.is_provider_selected %}
-                    <div class="bg-white shadow-lg rounded-lg p-6 mb-8">
-                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Make an Offer</h3>
-
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-{{ message.tags }} text-gray-800 bg-gray-200 rounded-lg p-4 mb-4">{{ message }}</div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Review</h3>
+                    <div class="flex items-center mb-2">
+                        <div class="text-yellow-500">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= service_request.review.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
                             {% endfor %}
-                        {% endif %}
-
-                        <form method="post" action="{% url 'services:submit_offer' service_request.id %}">
-                            {% csrf_token %}
-                            {% if offer_form.non_field_errors %}
-                                <div class="alert alert-danger text-red-500 bg-red-100 rounded-lg p-4 mb-4">
-                                    {{ offer_form.non_field_errors }}
-                                </div>
-                            {% endif %}
-                            {{ offer_form|crispy }}
-                            <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition">Submit Offer</button>
-                        </form>
+                        </div>
+                        <span class="ml-2 text-gray-700 font-medium">{{ service_request.review.rating }}/5</span>
                     </div>
+                    <p class="text-gray-700">{{ service_request.review.comment }}</p>
+                    <p class="text-xs text-gray-500 mt-3">Posted on {{ service_request.review.created_at|date:"M d, Y" }}</p>
+                </div>
+                {% else %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Review</h3>
+                    <a href="{% url 'ratings:create_review' service_request_id=service_request.id %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition duration-200">
+                        Submit a Review
+                    </a>
+                </div>
                 {% endif %}
             {% endif %}
+            
         </div>
+        
+        
     </div>
+</div>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+
+<!-- Initialize Alpine.js -->
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('sectionToggle', () => ({
+            expanded: true
+        }))
+    })
+</script>
 {% endblock %}

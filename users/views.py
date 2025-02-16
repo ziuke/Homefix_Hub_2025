@@ -12,7 +12,9 @@ from django.http import HttpResponse
 from .forms import TenantRegistrationForm, ServiceProviderRegistrationForm, CustomPasswordResetForm
 from .models import CustomUser
 from services.models import ServiceRequest, ProviderProfile
-
+from .forms import TenantProfileForm, ServiceProviderProfileForm
+from .models import TenantProfile, ServiceProviderProfile
+from services.models import ServiceCategory
 def home(request):
     context = {}
     if request.user.is_authenticated:
@@ -167,3 +169,52 @@ def approve_user(request, user_id):
         messages.error(request, 'User not found.')
     
     return redirect('admin_dashboard')
+
+
+@login_required
+def edit_profile(request):
+    """Allows users to update their profile based on their role (Tenant/Service Provider)."""
+    
+    if hasattr(request.user, 'tenant_profile'):
+        profile = request.user.tenant_profile
+        form_class = TenantProfileForm
+    elif hasattr(request.user, 'provider_profile'):
+        profile = request.user.provider_profile
+        form_class = ServiceProviderProfileForm
+    else:
+        messages.error(request, "Profile not found.")
+        return redirect('dashboard')  # Redirect to a suitable page
+
+    if request.method == 'POST':
+        form = form_class(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your profile has been updated successfully!")
+            return redirect('tenant_profile' if hasattr(request.user, 'tenant_profile') else 'provider_profile')
+
+    else:
+        form = form_class(instance=profile)
+
+    return render(request, 'users/edit_profile.html', {'form': form})
+@login_required
+def tenant_profile_view(request):
+    profile = request.user.tenant_profile
+    return render(request, 'users/tenant_profile.html', {'profile': profile})
+
+@login_required
+def provider_profile_view(request):
+    # Ensure the user has a provider_profile
+    profile = getattr(request.user, 'provider_profile', None)
+    if profile is None:
+        return render(request, 'users/no_profile.html', {'message': 'Profile not found.'})
+
+    # Ensure service_provided is a list of IDs
+    service_provided_ids = profile.service_provided.values_list('id', flat=True)  # Adjust this line
+
+    # Fetch the service_provided as actual ServiceCategory objects
+    service_provided = ServiceCategory.objects.filter(id__in=service_provided_ids)
+
+    return render(request, 'users/service_provider_profile.html', {
+        'profile': profile,
+        'service_provided': service_provided
+    })

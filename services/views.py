@@ -156,21 +156,26 @@ def accept_offer(request, offer_id):
     offer = get_object_or_404(ServiceOffer, pk=offer_id)
     service_request = offer.service_request
     
+    # Ensure only the tenant can accept an offer
     if request.user != service_request.tenant:
         messages.error(request, 'Unauthorized action.')
         return redirect('services:request_list')
     
+    # Assign provider and update service request status
     service_request.provider = offer.provider
     service_request.status = 'in_progress'
     service_request.is_provider_selected = True
     service_request.save()
-    
+
+    # Update the accepted offer's status to 'completed'
+    offer.status = 'completed'
+    offer.save()
+
     # Create chat room after provider selection
     ChatRoom.objects.create(service_request=service_request)
     
     messages.success(request, 'Offer accepted successfully.')
     return redirect('services:request_detail', pk=service_request.pk)
-
 @login_required
 def update_request_status(request, pk):
     print(f"Received request to update status for request ID: {pk}")  # Debugging statement

@@ -9,6 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggKt5hM6RaFJgsjxBvcEiwjF3Kpp0ztOGd6BzQ3K4nU4Iq47jIZ93w" crossorigin="anonymous">
+
+
     <script>
         tailwind.config = {
             theme: {
@@ -71,11 +75,6 @@
                                 <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <i class="fas fa-id-card mr-2"></i> Profile
                                 </a>
-                                {% if user.user_type == 'serviceprovider' %}
-                                    <a href="{% url 'services:provider_profile' user.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                        <i class="fas fa-briefcase mr-2"></i> Provider Profile
-                                    </a>
-                                {% endif %}
                                 <div class="border-t border-gray-100"></div>
                                 <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <i class="fas fa-sign-out-alt mr-2"></i> Logout
@@ -144,7 +143,7 @@
         {% endblock %}
     </main>
 
-    <footer class="bg-white mt-auto">
+    <footer class="bg-white  bottom-0 left-0 right-0">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center text-sm text-gray-500">
                 © 2025 HomeFix. All rights reserved.

@@ -13,10 +13,15 @@ class ServiceCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(ServiceRequest)
 class ServiceRequestAdmin(admin.ModelAdmin):
-    list_display = ('title', 'tenant', 'category', 'status', 'priority', 'created_at')
+    list_display = ('title', 'tenant', 'get_categories', 'status', 'priority', 'created_at')
     list_filter = ('status', 'priority', 'category')
     search_fields = ('title', 'description', 'tenant__username', 'provider__username')
     date_hierarchy = 'created_at'
+
+    def get_categories(self, obj):
+        return ", ".join([category.name for category in obj.category.all()])  # ✅ Convert M2M field to string
+    
+    get_categories.short_description = "Categories"  # Rename column in admin panel
 
 @admin.register(ServiceOffer)
 class ServiceOfferAdmin(admin.ModelAdmin):

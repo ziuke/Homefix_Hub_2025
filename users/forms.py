@@ -1,6 +1,7 @@
 from django import forms
+from .models import TenantProfile, ServiceProviderProfile
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
-from .models import CustomUser, TenantProfile, ServiceProviderProfile
+from .models import CustomUser
 from services.models import ServiceCategory
 
 class TenantRegistrationForm(UserCreationForm):
@@ -8,7 +9,7 @@ class TenantRegistrationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'phone_number', 'password1', 'password2', 'location')
+        fields = ('username', 'email', 'phone_number', 'password1', 'password2')
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -16,8 +17,7 @@ class TenantRegistrationForm(UserCreationForm):
         if commit:
             user.save()
             TenantProfile.objects.create(
-                user=user,
-                location=self.cleaned_data.get('location')
+                user=user
             )
         return user
 
@@ -33,20 +33,16 @@ class ServiceProviderRegistrationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'phone_number', 'password1', 'password2',
-                 'service_location', 'categories', 'certifications')
+        fields = ('username', 'email', 'phone_number', 'password1', 'password2')
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.user_type = 'serviceprovider'
         if commit:
             user.save()
-            profile = ServiceProviderProfile.objects.create(
-                user=user,
-                service_location=self.cleaned_data.get('service_location'),
-                certifications=self.cleaned_data.get('certifications')
+            ServiceProviderProfile.objects.create(
+                user=user
             )
-            profile.categories.set(self.cleaned_data.get('categories'))  # Ensure many-to-many relationships are saved
         return user
 class CustomPasswordResetForm(PasswordResetForm):
     def clean_email(self):
@@ -54,3 +50,48 @@ class CustomPasswordResetForm(PasswordResetForm):
         if not CustomUser.objects.filter(email=email).exists():
             raise forms.ValidationError("There is no user registered with this email address.")
         return email
+
+
+
+class TenantProfileForm(forms.ModelForm):
+    """Form for Tenants to update their profile."""
+    
+    class Meta:
+        model = TenantProfile
+        fields = ['location']
+        widgets = {
+            'location': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-300 focus:border-indigo-500',
+                'placeholder': 'Enter your location'
+            }),
+        }
+
+
+class ServiceProviderProfileForm(forms.ModelForm):
+    """Form for Service Providers to update their profile."""
+    
+    service_provided = forms.ModelMultipleChoiceField(
+        queryset=ServiceCategory.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'space-y-2'}),
+        required=False
+    )
+
+    class Meta:
+        model = ServiceProviderProfile
+        fields = ['service_location', 'service_provided', 'certifications']
+        widgets = {
+            'service_location': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-300 focus:border-indigo-500',
+                'placeholder': 'Enter your location'
+            }),
+            'certifications': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-300 focus:border-indigo-500',
+                'rows': 4,
+                'placeholder': 'List your certifications'
+            }),
+        }
+
+    def clean_service_provided(self):
+        """Ensure only IDs are stored in the database."""
+        service_categories = self.cleaned_data.get('service_provided', [])
+        return [category.id for category in service_categories]

@@ -33,7 +33,7 @@ class ServiceRequest(models.Model):
     )
 
     tenant = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='service_requests')
-    category = models.ForeignKey(ServiceCategory, on_delete=models.CASCADE)
+    category = models.ManyToManyField(ServiceCategory, related_name='service_requests')
     title = models.CharField(max_length=200)
     description = models.TextField()
     location = models.CharField(max_length=255)
