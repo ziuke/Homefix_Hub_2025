@@ -1,0 +1,78 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6">Client Dashboard</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Recent Service Requests Card -->
+        <div class="bg-white shadow-lg rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Recent Service Requests</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 p-2 text-left">Service Name</th>
+                            <th class="border border-gray-300 p-2 text-left">Status</th>
+                            <th class="border border-gray-300 p-2 text-left">Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in recent_requests %}
+                            <tr class="border border-gray-300">
+                                <td class="p-2">
+                                    <a href="{% url 'services:request_detail' request.id %}" class="text-blue-500 hover:underline">
+                                        {{ request.title }}
+                                    </a>
+                                </td>
+                                <td class="p-2 font-medium text-blue-600">{{ request.status }}</td>
+                                <td class="p-2 text-sm text-gray-500">{{ request.created_at }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="p-2 text-center text-gray-600">No recent service requests found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Direct Service Requests Card -->
+        <div class="bg-white shadow-lg rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Direct Service Requests</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 p-2 text-left">Service Name</th>
+                            <th class="border border-gray-300 p-2 text-left">Status</th>
+                            <th class="border border-gray-300 p-2 text-left">Created At</th>
+                            <th class="border border-gray-300 p-2 text-left">Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in direct_requests %}
+                            <tr class="border border-gray-300">
+                                <td class="p-2">
+                                    {{ request.provider.username }}
+                                </td>
+                                <td class="p-2 font-medium text-green-600">{{ request.status }}</td>
+                                <td class="p-2 text-sm text-gray-500">{{ request.created_at }}</td>
+                                <td class="p-2 text-gray-700">
+                                    {{ request.message|default:"No message provided" }}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="p-2 text-center text-gray-600">No direct service requests found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

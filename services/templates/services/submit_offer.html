@@ -8,7 +8,7 @@
     <div class="bg-white shadow-lg rounded-lg p-6">
         <h2 class="text-2xl font-bold text-center text-gray-900 mb-4">Submit Your Offer</h2>
 
-        <form method="post" action="{% url 'services:submit_offer' service_request.id %}" class="space-y-4">
+        <form method="post" action="{% url 'services:submit_offer' service_request.id %}" class="space-y-4" id="offerForm">
             {% csrf_token %}
 
             {% if offer_form.non_field_errors %}
@@ -16,7 +16,7 @@
                     {{ offer_form.non_field_errors }}
                 </div>
             {% endif %}
-
+            
             {% for field in offer_form %}
             <div>
                 <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
@@ -32,17 +32,18 @@
                     >{{ field.value|default:'' }}</textarea>
                 {% else %}
                     <input 
+                        class="w-full p-2 border {% if field.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-md shadow-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none"
                         type="{{ field.field.widget.input_type }}"
                         name="{{ field.name }}"
                         id="{{ field.id_for_label }}"
                         value="{{ field.value|default:'' }}"
-                        class="w-full p-2 border {% if field.errors %}border-red-400{% else %}border-gray-300{% endif %} rounded-md shadow-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-                    >
+                        {% if field.field.widget.input_type == 'date' %}
+                            min="{{ today|date:'Y-m-d' }}"  <!-- Set dynamically via JavaScript -->
+                        {% endif %}
+                        
                 {% endif %}
 
-                {% if field.errors %}
-                    <p class="text-sm text-red-600 mt-1">{{ field.errors|join:", " }}</p>
-                {% endif %}
+                <p class="error-message text-sm text-red-600 mt-1 hidden"></p>
 
                 {% if field.help_text %}
                     <p class="text-sm text-gray-500 mt-1">{{ field.help_text }}</p>
@@ -58,4 +59,65 @@
         </form>
     </div>
 </div>
+
+<!-- Frontend Validation Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("offerForm");
+    const proposedDateField = document.getElementById("{{ offer_form.proposed_date.id_for_label }}");
+    const proposedCostField = document.getElementById("{{ offer_form.proposed_cost.id_for_label }}");
+    
+    // Set min date dynamically to today
+    const today = new Date().toISOString().split("T")[0];
+    proposedDateField.setAttribute("min", today);
+
+    form.addEventListener("submit", function (event) {
+        let isValid = true;
+        
+        // Validate Proposed Date
+        if (proposedDateField.value) {
+            const selectedDate = new Date(proposedDateField.value);
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < currentDate) {
+                showError(proposedDateField, "The proposed date cannot be in the past.");
+                isValid = false;
+            } else {
+                clearError(proposedDateField);
+            }
+        } else {
+            showError(proposedDateField, "Please select a date.");
+            isValid = false;
+        }
+
+        // Validate Proposed Cost
+        const costValue = parseFloat(proposedCostField.value);
+        if (isNaN(costValue) || costValue <= 0) {
+            showError(proposedCostField, "Please enter a valid positive cost.");
+            isValid = false;
+        } else {
+            clearError(proposedCostField);
+        }
+
+        if (!isValid) {
+            event.preventDefault(); // Prevent form submission if invalid
+        }
+    });
+
+    function showError(field, message) {
+        let errorElement = field.parentNode.querySelector(".error-message");
+        errorElement.textContent = message;
+        errorElement.classList.remove("hidden");
+        field.classList.add("border-red-400");
+    }
+
+    function clearError(field) {
+        let errorElement = field.parentNode.querySelector(".error-message");
+        errorElement.textContent = "";
+        errorElement.classList.add("hidden");
+        field.classList.remove("border-red-400");
+    }
+});
+</script>
 {% endblock %}

@@ -1,0 +1,11 @@
+{# templates/services/direct_service_request_form.html #}
+{% extends "users/base.html" %}
+
+{% block content %}
+  <h2>Request Service from {{ provider.get_full_name|default:provider.username }}</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Send Request</button>
+  </form>
+{% endblock %}

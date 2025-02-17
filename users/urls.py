@@ -41,4 +41,5 @@ urlpatterns = [
     path('edit-profile/', views.edit_profile, name='edit_profile'),
     path('tenant-profile/', views.tenant_profile_view, name='tenant_profile'),
     path('provider-profile/', views.provider_profile_view, name='provider_profile'),
+    path('client-dashboard/', views.client_dashboard, name='client_dashboard'),
 ]

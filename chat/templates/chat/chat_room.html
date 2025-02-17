@@ -97,13 +97,26 @@
             messages: [],
             newMessage: '',
             pollingInterval: null,
+            autoScroll: true,  // true if user is near bottom
 
             init() {
+                // Set up scroll event to determine if user is near the bottom.
+                const container = this.$refs.messageContainer;
+                container.addEventListener('scroll', () => {
+                    const threshold = 100; // pixels
+                    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+                    this.autoScroll = distanceFromBottom < threshold;
+                });
+
                 this.loadMessages();
                 this.startPolling();
+
+                // Watch for new messages. Scroll only if autoScroll is enabled.
                 this.$watch('messages', () => {
                     this.$nextTick(() => {
-                        this.scrollToBottom();
+                        if (this.autoScroll) {
+                            this.scrollToBottom();
+                        }
                     });
                 });
             },
@@ -122,7 +135,8 @@
                     const response = await fetch(`/chat/{{ chat_room.id }}/messages/`);
                     const data = await response.json();
                     this.messages = data.messages;
-                    this.scrollToBottom();
+                    // On initial load, always scroll to bottom.
+                    this.$nextTick(() => this.scrollToBottom());
                 } catch (error) {
                     console.error('Error loading messages:', error);
                 }
@@ -153,7 +167,8 @@
                     if (response.ok) {
                         this.messages.push(data);
                         this.newMessage = '';
-                        this.scrollToBottom();
+                        // When sending your own message, scroll down immediately.
+                        this.$nextTick(() => this.scrollToBottom());
                     } else {
                         console.error('Error sending message:', data.error);
                     }

@@ -121,9 +121,9 @@
                     </div>
                 </div>
             </div>
-            
+            {% if user.user_type == 'tenant' %}
             <!-- Service Offers Section - Collapsible -->
-            {% if service_request.offers.all %}
+            {% if service_request.offers.all  %}
             <div x-data="{ expanded: true }" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h2 @click="expanded = !expanded" class="section-title text-lg font-semibold text-gray-900 flex items-center justify-between">
@@ -190,7 +190,7 @@
                 <p class="text-gray-500 italic">No offers have been submitted yet.</p>
             </div>
             {% endif %}
-            
+            {% endif %}
             <!-- Chat Section -->
             {% if chat_room %}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">

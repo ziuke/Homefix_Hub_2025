@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from users.models import CustomUser
-
+from django.conf import settings
 # Create your models here.
 
 class ServiceCategory(models.Model):
@@ -115,3 +115,33 @@ class ServiceMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.username} on {self.created_at}"
+class DirectServiceRequest(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    )
+    tenant = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='direct_service_requests'
+    )
+    provider = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='received_direct_requests'
+    )
+    message = models.TextField(
+        blank=True, 
+        null=True,
+        help_text="Optional message to include with your request."
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.tenant.username} -> {self.provider.username} ({self.status})"

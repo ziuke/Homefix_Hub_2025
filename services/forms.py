@@ -1,5 +1,7 @@
 from django import forms
 from .models import ServiceRequest, ServiceOffer, ServiceReview, ServiceMessage, ProviderProfile, ServiceCategory
+from django.utils.timezone import now
+from django.core.exceptions import ValidationError
 
 class ServiceRequestForm(forms.ModelForm):
     category = forms.ModelMultipleChoiceField(
@@ -28,7 +30,7 @@ class ServiceOfferForm(forms.ModelForm):
     proposed_date = forms.DateField(
         widget=forms.DateInput(attrs={
             'type': 'date',
-            'class': 'form-control'
+            'class': 'form-control',
         }),
         help_text="Select the proposed date for the service"
     )
@@ -50,9 +52,21 @@ class ServiceOfferForm(forms.ModelForm):
         help_text="Additional details about your offer (optional)"
     )
 
+    def clean_proposed_date(self):
+        proposed_date = self.cleaned_data.get('proposed_date')
+        if proposed_date and proposed_date < now().date():
+            raise ValidationError("The proposed date cannot be in the past.")
+        return proposed_date
+
     class Meta:
         model = ServiceOffer
         fields = ['proposed_cost', 'proposed_date', 'proposed_time_slot', 'notes']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set dynamic min date for proposed_date field
+        self.fields['proposed_date'].widget.attrs['min'] = now().date().isoformat()
+
 
 class ServiceReviewForm(forms.ModelForm):
     class Meta:
@@ -105,3 +119,14 @@ class ServiceProviderSearchForm(forms.Form):
         super().__init__(*args, **kwargs)
         from .models import ServiceCategory
         self.fields['category'].queryset = ServiceCategory.objects.all()
+
+
+from .models import DirectServiceRequest
+
+class DirectServiceRequestForm(forms.ModelForm):
+    class Meta:
+        model = DirectServiceRequest
+        fields = ['message']  # Only the message is entered by the tenant
+        widgets = {
+            'message': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter any additional details (optional)...'}),
+        }

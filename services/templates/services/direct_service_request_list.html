@@ -1,0 +1,28 @@
+{# templates/services/direct_service_request_list.html #}
+{% extends "users/base.html" %}
+
+{% block content %}
+  <h2>
+    {% if user.user_type == 'serviceprovider' %}
+      Received Service Requests
+    {% else %}
+      Your Service Requests
+    {% endif %}
+  </h2>
+  <ul>
+    {% for req in direct_requests %}
+      <li>
+        <strong>From:</strong> {{ req.tenant.get_full_name|default:req.tenant.username }}<br>
+        <strong>To:</strong> {{ req.provider.get_full_name|default:req.provider.username }}<br>
+        <strong>Status:</strong> {{ req.status|capfirst }}<br>
+        <strong>Date:</strong> {{ req.created_at|date:"F j, Y, g:i a" }}
+        {% if user.user_type == 'serviceprovider' and req.status == 'pending' %}
+          <br><a href="{% url 'services:direct_service_request_update' req.pk %}">Update Request</a>
+        {% endif %}
+      </li>
+      <hr>
+    {% empty %}
+      <li>No service requests found.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

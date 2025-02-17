@@ -14,10 +14,23 @@ urlpatterns = [
     path('request/<int:pk>/review/', views.submit_review, name='submit_review'),
     path('request/<int:pk>/message/', views.send_message, name='send_message'),
     path('request/<int:service_request_id>/submit/', views.submit_offer_view, name='submit_offer_view'),
-    path('request/<int:service_request_id>/submit/', views.submit_offer_view, name='submit_offer_view'),
     
     # Provider Management
     path('providers/search/', views.search_providers, name='search_providers'),
     path('provider/<int:pk>/', views.provider_profile, name='provider_profile'),
     path('provider/dashboard/', views.provider_dashboard, name='provider_dashboard'),
+     # Create a direct service request (tenant selects a provider)
+    path('direct-request/create/<int:provider_id>/', 
+         views.direct_service_request_create, 
+         name='direct_service_request_create'),
+
+    # List direct service requests (different view for tenant vs. provider)
+    path('direct-request/', 
+         views.direct_service_request_list, 
+         name='direct_service_request_list'),
+
+    # Update a direct service request (only provider can accept/reject)
+    path('direct-request/<int:pk>/update/', 
+         views.direct_service_request_update, 
+         name='direct_service_request_update'),
 ]

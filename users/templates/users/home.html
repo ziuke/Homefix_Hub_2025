@@ -3,190 +3,367 @@
 {% block title %}Welcome to HomeFix{% endblock %}
 
 {% block content %}
-{% if user.is_authenticated %}
-    {% if user.user_type == 'tenant' %}
-        <!-- Tenant Dashboard -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="md:col-span-2">
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Welcome back, {{ user.get_full_name|default:user.username }}!</h2>
-                    <p class="text-gray-600 mb-6">Need maintenance or repairs? We're here to help.</p>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <a href="{% url 'services:request_create' %}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                            <i class="fas fa-plus mr-2"></i> New Service Request
-                        </a>
-                        <a href="{% url 'services:search_providers' %}" class="inline-flex items-center justify-center px-4 py-2 border border-indigo-600 text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50">
-                            <i class="fas fa-search mr-2"></i> Find Service Providers
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="md:col-span-1">
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                    <div class="space-y-2">
-                        <a href="{% url 'services:request_list' %}" class="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-50">
-                            <i class="fas fa-clipboard-list w-5 h-5 mr-3 text-gray-400"></i>
-                            <span>View My Requests</span>
-                        </a>
-                        <a href="{% url 'profile' %}" class="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-50">
-                            <i class="fas fa-user w-5 h-5 mr-3 text-gray-400"></i>
-                            <span>Update Profile</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Service Requests -->
-        {% if recent_requests %}
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Service Requests</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {% for request in recent_requests %}
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <h4 class="text-lg font-medium text-gray-900">{{ request.title }}</h4>
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                                {% if request.status == 'completed' %}bg-green-100 text-green-800
-                                {% elif request.status == 'in_progress' %}bg-blue-100 text-blue-800
-                                {% elif request.status == 'pending' %}bg-yellow-100 text-yellow-800
-                                {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                {{ request.status|title }}
-                            </span>
+    {% if user.is_authenticated %}
+        {% if user.user_type == 'tenant' %}
+            <!-- Tenant Dashboard -->
+            <div class="container mx-auto px-4 py-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="md:col-span-2">
+                        <div class="bg-white rounded-xl shadow-lg p-6 backdrop-blur-sm bg-opacity-90 transition-all duration-300 hover:shadow-xl">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome back, {{ user.get_full_name|default:user.username }}!</h2>
+                            <p class="text-gray-600 mb-6">Need maintenance or repairs? We're here to help.</p>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <a href="{% url 'services:request_create' %}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 shadow-sm hover:shadow">
+                                    <i class="fas fa-plus mr-2"></i> New Service Request
+                                </a>
+                                <a href="{% url 'services:search_providers' %}" class="inline-flex items-center justify-center px-4 py-2 border border-indigo-600 text-sm font-medium rounded-lg text-indigo-600 bg-white hover:bg-indigo-50 transition-colors duration-200 shadow-sm hover:shadow">
+                                    <i class="fas fa-search mr-2"></i> Find Service Providers
+                                </a>
+                            </div>
                         </div>
-                        <p class="text-gray-600 mb-4">{{ request.description|truncatewords:20 }}</p>
-                        <a href="{% url 'services:request_detail' request.pk %}" class="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-900">
-                            View Details <i class="fas fa-arrow-right ml-2"></i>
-                        </a>
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-    {% elif user.user_type == 'serviceprovider' %}
-        <!-- Service Provider Dashboard -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="md:col-span-2">
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Welcome back, {{ user.get_full_name|default:user.username }}!</h2>
-                    <p class="text-gray-600 mb-6">Check your dashboard for new service requests and manage your jobs.</p>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <a href="{% url 'services:provider_dashboard' %}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                            <i class="fas fa-th-large mr-2"></i> Go to Dashboard
-                        </a>
-                        <a href="{% url 'services:request_list' %}" class="inline-flex items-center justify-center px-4 py-2 border border-indigo-600 text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50">
-                            <i class="fas fa-tools mr-2"></i> Browse Service Requests
-                        </a>
+                    <div class="md:col-span-1">
+                        <div class="bg-white rounded-xl shadow-lg p-6 backdrop-blur-sm bg-opacity-90 transition-all duration-300 hover:shadow-xl">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
+                            <div class="space-y-2">
+                                <a href="{% url 'services:request_list' %}" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-indigo-50 transition-colors duration-200">
+                                    <i class="fas fa-clipboard-list w-5 h-5 mr-3 text-indigo-500"></i>
+                                    <span>View My Requests</span>
+                                </a>
+                                <a href="{% url 'profile' %}" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-indigo-50 transition-colors duration-200">
+                                    <i class="fas fa-user w-5 h-5 mr-3 text-indigo-500"></i>
+                                    <span>Update Profile</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Recent Service Requests -->
+                {% if recent_requests %}
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Recent Service Requests</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for request in recent_requests %}
+                            <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-300">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="text-lg font-medium text-gray-900">{{ request.title }}</h4>
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                        {% if request.status == 'completed' %}bg-green-100 text-green-800
+                                        {% elif request.status == 'in_progress' %}bg-blue-100 text-blue-800
+                                        {% elif request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ request.status|title }}
+                                    </span>
+                                </div>
+                                <p class="text-gray-600 mb-4">{{ request.description|truncatewords:20 }}</p>
+                                <a href="{% url 'services:request_detail' request.pk %}" class="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-900 transition-colors duration-200">
+                                    View Details <i class="fas fa-arrow-right ml-2"></i>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
-            <div class="md:col-span-1">
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                            <span class="text-gray-600">Rating</span>
-                            <span class="text-yellow-400">
-                                {% with ''|center:5 as range %}
-                                {% for _ in range %}
-                                    <i class="fas fa-star{% if forloop.counter <= user.providerprofile.rating %}{% else %}-o{% endif %}"></i>
+
+        {% elif user.user_type == 'serviceprovider' %}
+            <!-- Service Provider Dashboard -->
+            <div class="container mx-auto px-4 py-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="md:col-span-2">
+                        <div class="bg-white rounded-xl shadow-lg p-6 backdrop-blur-sm bg-opacity-90 transition-all duration-300 hover:shadow-xl">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome back, {{ user.get_full_name|default:user.username }}!</h2>
+                            <p class="text-gray-600 mb-6">Check your dashboard for new service requests and manage your jobs.</p>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <a href="{% url 'services:provider_dashboard' %}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 shadow-sm hover:shadow">
+                                    <i class="fas fa-th-large mr-2"></i> Go to Dashboard
+                                </a>
+                                <a href="{% url 'services:request_list' %}" class="inline-flex items-center justify-center px-4 py-2 border border-indigo-600 text-sm font-medium rounded-lg text-indigo-600 bg-white hover:bg-indigo-50 transition-colors duration-200 shadow-sm hover:shadow">
+                                    <i class="fas fa-tools mr-2"></i> Browse Service Requests
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-1">
+                        <div class="bg-white rounded-xl shadow-lg p-6 backdrop-blur-sm bg-opacity-90 transition-all duration-300 hover:shadow-xl">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Quick Stats</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-600">Rating</span>
+                                    <span class="text-yellow-400">
+                                        {% with ''|center:5 as range %}
+                                            {% for _ in range %}
+                                                <i class="fas fa-star{% if forloop.counter <= user.providerprofile.rating %}{% else %}-o{% endif %}"></i>
+                                            {% endfor %}
+                                        {% endwith %}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-600">Status</span>
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                        {% if user.providerprofile.is_available %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {% if user.providerprofile.is_available %}Available{% else %}Unavailable{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Jobs -->
+                {% if upcoming_jobs %}
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Upcoming Jobs</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        {% for job in upcoming_jobs %}
+                            <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-300">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="text-lg font-medium text-gray-900">{{ job.title }}</h4>
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                        {% if job.status == 'in_progress' %}bg-blue-100 text-blue-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                        {{ job.status|title }}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-4">
+                                    <i class="fas fa-calendar mr-2"></i>
+                                    {{ job.scheduled_date|date:"M d, Y" }}
+                                    {% if job.scheduled_time_slot %}
+                                        at {{ job.scheduled_time_slot }}
+                                    {% endif %}
+                                </p>
+                                <a href="{% url 'services:request_detail' job.pk %}" class="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-900 transition-colors duration-200">
+                                    View Details <i class="fas fa-arrow-right ml-2"></i>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% if direct_requests %}
+                    {% if user.user_type == 'tenant' %}
+                    <h3>Your Direct Service Requests</h3>
+                    <ul>
+                        {% for request in direct_requests %}
+                            <li>{{ request.service_type }} - Status: {{ request.status }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    
+                
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Direct Service Requests</h3>
+                    <div class="overflow-x-auto mb-8">
+                        <table class="table-auto w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 text-left">Tenant</th>
+                                    <th class="py-2 px-4 text-left">Message</th>
+                                    <th class="py-2 px-4 text-left">Requested On</th>
+                                    <th class="py-2 px-4 text-left">Status</th>
+                                    <th class="py-2 px-4 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in direct_requests %}
+                                    <tr class="border-t hover:bg-gray-50">
+                                        <td class="py-2 px-4">
+                                            {{ req.tenant.get_full_name|default:req.tenant.username }}
+                                        </td>
+                                        <td class="py-2 px-4">
+                                            {{ req.message|default:"No message provided" }}
+                                        </td>
+                                        <td class="py-2 px-4">
+                                            {{ req.created_at|date:"M d, Y" }}
+                                        </td>
+                                        <td class="py-2 px-4">
+                                            {{ req.status|title }}
+                                        </td>
+                                        <td class="py-2 px-4">
+                                            {% if req.status == 'pending' %}
+                                                <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded-lg update-direct-request"
+                                                        data-request-id="{{ req.id }}"
+                                                        data-status="accepted"
+                                                        data-action-url="{% url 'services:direct_service_request_update' req.id %}">
+                                                    Accept
+                                                </button>
+                                                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded-lg update-direct-request"
+                                                        data-request-id="{{ req.id }}"
+                                                        data-status="rejected"
+                                                        data-action-url="{% url 'services:direct_service_request_update' req.id %}">
+                                                    Reject
+                                                </button>
+                                            {% elif req.status == 'accepted' %}
+                                                <button class="bg-indigo-600 hover:bg-indigo-800 text-white font-bold py-1 px-2 rounded-lg update-direct-request"
+                                                        data-request-id="{{ req.id }}"
+                                                        data-status="completed"
+                                                        data-action-url="{% url 'services:direct_service_request_update' req.id %}">
+                                                    Mark as Completed
+                                                </button>
+                                            {% else %}
+                                                <span class="text-gray-500">No actions</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
                                 {% endfor %}
-                                {% endwith %}
-                            </span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                            <span class="text-gray-600">Status</span>
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                                {% if user.providerprofile.is_available %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
-                                {% if user.providerprofile.is_available %}Available{% else %}Unavailable{% endif %}
-                            </span>
-                        </div>
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+
+        {% else %}
+            <!-- Admin Dashboard Link -->
+            <div class="container mx-auto px-4 py-8">
+                <div class="text-center py-16 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl shadow-lg">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Welcome, Administrator!</h2>
+                    <p class="text-gray-600 mb-8">Access the admin dashboard to manage users and monitor platform activity.</p>
+                    <a href="{% url 'dashboard:home' %}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 shadow-md hover:shadow-lg">
+                        <i class="fas fa-chart-line mr-2"></i> Go to Admin Dashboard
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <!-- Hero Section with Background Image -->
+        <div class="relative isolate overflow-hidden bg-gray-900 text-white py-24 sm:py-32">
+            <div class="absolute inset-0 w-full h-full overflow-hidden z-0">
+                <img src="https://source.unsplash.com/1920x1080/?home-repair" class="w-full h-full object-cover object-center opacity-50" alt="Professional home repair services"/>
+                <div class="absolute inset-0 bg-gray-900 opacity-50"></div>
+            </div>
+            <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+                <div class="text-center">
+                    <h1 class="text-4xl font-bold tracking-tight sm:text-6xl mb-6">Welcome to HomeFix</h1>
+                    <p class="mt-6 text-xl leading-8 max-w-3xl mx-auto mb-8">
+                        Your one-stop solution for home maintenance and repairs. Connect with qualified service providers or offer your services to homeowners.
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <a href="{% url 'register_tenant' %}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 shadow-md hover:shadow-lg">
+                            <i class="fas fa-home mr-2"></i> Register as Tenant
+                        </a>
+                        <a href="{% url 'register_service_provider' %}" class="inline-flex items-center justify-center px-6 py-3 border border-white text-base font-medium rounded-lg text-white bg-transparent hover:bg-white/10 transition-colors duration-200 backdrop-blur-sm">
+                            <i class="fas fa-tools mr-2"></i> Register as Provider
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Upcoming Jobs -->
-        {% if upcoming_jobs %}
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Upcoming Jobs</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {% for job in upcoming_jobs %}
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <h4 class="text-lg font-medium text-gray-900">{{ job.title }}</h4>
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                                {% if job.status == 'in_progress' %}bg-blue-100 text-blue-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
-                                {{ job.status|title }}
-                            </span>
-                        </div>
-                        <p class="text-sm text-gray-500 mb-4">
-                            <i class="fas fa-calendar mr-2"></i>
-                            {{ job.scheduled_date|date:"M d, Y" }}
-                            {% if job.scheduled_time_slot %}
-                                at {{ job.scheduled_time_slot }}
-                            {% endif %}
-                        </p>
-                        <a href="{% url 'services:request_detail' job.pk %}" class="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-900">
-                            View Details <i class="fas fa-arrow-right ml-2"></i>
-                        </a>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
+        <!-- Features Section -->
+        <div class="bg-white py-24 sm:py-32">
+            <div class="mx-auto max-w-7xl px-6 lg:px-8">
+                <div class="mx-auto max-w-2xl lg:text-center mb-16">
+                    <h2 class="text-base font-semibold leading-7 text-indigo-600">Why Choose HomeFix</h2>
+                    <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Everything you need for home repairs</p>
+                    <p class="mt-6 text-lg leading-8 text-gray-600">Our platform connects homeowners with qualified professionals for seamless home maintenance.</p>
+                </div>
 
-    {% else %}
-        <!-- Admin Dashboard Link -->
-        <div class="text-center py-16">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Welcome, Administrator!</h2>
-            <p class="text-gray-600 mb-8">Access the admin dashboard to manage users and monitor platform activity.</p>
-            <a href="{% url 'dashboard:home' %}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                <i class="fas fa-chart-line mr-2"></i> Go to Admin Dashboard
-            </a>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 py-8">
+                    <div class="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-all duration-300 group">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 mb-6 group-hover:bg-indigo-200 transition-colors duration-300">
+                            <i class="fas fa-tools text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Quality Service</h3>
+                        <p class="text-gray-600">Connect with verified service providers for all your maintenance needs.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-all duration-300 group">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 mb-6 group-hover:bg-indigo-200 transition-colors duration-300">
+                            <i class="fas fa-clock text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Quick Response</h3>
+                        <p class="text-gray-600">Get fast responses from available service providers in your area.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-all duration-300 group">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 mb-6 group-hover:bg-indigo-200 transition-colors duration-300">
+                            <i class="fas fa-star text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Verified Reviews</h3>
+                        <p class="text-gray-600">Make informed decisions based on genuine customer reviews and ratings.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testimonials Section -->
+        <div class="bg-indigo-50 py-24 sm:py-32">
+            <div class="mx-auto max-w-7xl px-6 lg:px-8">
+                <div class="mx-auto max-w-2xl lg:text-center mb-16">
+                    <h2 class="text-base font-semibold leading-7 text-indigo-600">Testimonials</h2>
+                    <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Hear from our satisfied customers</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 py-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 rounded-full overflow-hidden mr-4">
+                                <img src="/api/placeholder/100/100" alt="Customer profile" class="w-full h-full object-cover"/>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold">Sarah Johnson</h4>
+                                <div class="text-yellow-400">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <p class="text-gray-500">"HomeFix made it easy to find a reliable plumber quickly. I highly recommend their service!"</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 rounded-full overflow-hidden mr-4">
+                                <img src="/api/placeholder/100/100" alt="Customer profile" class="w-full h-full object-cover"/>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold">Michael Brown</h4>
+                                <div class="text-yellow-400">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                                <p class="text-gray-500">"As a service provider, HomeFix has been a great platform for connecting with new clients. It's easy to use and very effective."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     {% endif %}
-{% else %}
-    <!-- Landing Page -->
-    <div class="text-center py-16">
-        <h1 class="text-4xl font-bold text-gray-900 mb-6">Welcome to HomeFix</h1>
-        <div class="max-w-2xl mx-auto">
-            <p class="text-xl text-gray-600 mb-8">
-                Your one-stop solution for home maintenance and repairs. 
-                Connect with qualified service providers or offer your services to homeowners.
-            </p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="{% url 'register_tenant' %}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                    <i class="fas fa-home mr-2"></i> Register as Tenant
-                </a>
-                <a href="{% url 'register_service_provider' %}" class="inline-flex items-center justify-center px-6 py-3 border border-indigo-600 text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50">
-                    <i class="fas fa-tools mr-2"></i> Register as Provider
-                </a>
-            </div>
-        </div>
-    </div>
+{% endblock %}
 
-    <!-- Features -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 py-16">
-        <div class="bg-white rounded-lg shadow-sm p-8 text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 mb-6">
-                <i class="fas fa-tools text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">Quality Service</h3>
-            <p class="text-gray-600">Connect with verified service providers for all your maintenance needs.</p>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm p-8 text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 mb-6">
-                <i class="fas fa-clock text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">Quick Response</h3>
-            <p class="text-gray-600">Get fast responses from available service providers in your area.</p>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm p-8 text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 mb-6">
-                <i class="fas fa-star text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">Verified Reviews</h3>
-            <p class="text-gray-600">Make informed decisions based on genuine customer reviews and ratings.</p>
-        </div>
-    </div>
-{% endif %}
+{% block extra_js %}
+    {% if user.is_authenticated and user.user_type == 'serviceprovider' %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.update-direct-request').forEach(button => {
+            button.addEventListener('click', function() {
+                const reqId = this.getAttribute('data-request-id');
+                const newStatus = this.getAttribute('data-status');
+                const actionUrl = this.getAttribute('data-action-url');
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(data.error || 'An error occurred while updating the request.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to update request. Please try again.');
+                });
+            });
+        });
+    });
+    </script>
+    {% endif %}
 {% endblock %}

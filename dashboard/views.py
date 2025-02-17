@@ -214,29 +214,33 @@ def service_categories(request):
 
 @user_passes_test(is_admin)
 def service_requests(request):
-    requests = ServiceRequest.objects.select_related(
-        'tenant', 'category', 'provider'
-    ).prefetch_related('offers').order_by('-created_at')
+    # Adjust the query to use prefetch_related for ManyToManyField
+    requests = ServiceRequest.objects.prefetch_related('tenant', 'category').all()
+
     
     context = {
         'requests': requests
     }
     return render(request, 'dashboard/service_requests.html', context)
-
 @user_passes_test(is_admin)
 def request_details(request, request_id):
+    # Fetch the service request with related fields
     service_request = get_object_or_404(ServiceRequest.objects.select_related(
-        'tenant', 'category', 'provider'
+        'tenant', 'provider'  # These should be ForeignKey relationships
+    ).prefetch_related(
+        'category'  # If category is a ManyToManyField, use prefetch_related
     ), id=request_id)
+
     offers = service_request.offers.select_related('provider').all()
     review = service_request.service_review if hasattr(service_request, 'service_review') else None
-    
+
     context = {
         'service_request': service_request,
         'offers': offers,
         'review': review
     }
     return render(request, 'dashboard/request_details.html', context)
+
 
 @user_passes_test(is_admin)
 def provider_performance(request):

@@ -15,16 +15,28 @@ from services.models import ServiceRequest, ProviderProfile, ServiceReview, Serv
 from .forms import TenantProfileForm, ServiceProviderProfileForm
 from .models import TenantProfile, ServiceProviderProfile
 from django.contrib.auth.models import User
+from services.models import DirectServiceRequest
 def home(request):
     context = {}
+    
     if request.user.is_authenticated:
+        print(f"User: {request.user}, Type: {request.user.user_type}")  # Debug user info
+
         if request.user.user_type == 'tenant':
             # Get recent service requests for tenant
             recent_requests = ServiceRequest.objects.filter(
                 tenant=request.user
             ).order_by('-created_at')[:4]
             context['recent_requests'] = recent_requests
+
+            # Get direct service requests made by the tenant
+            tenant_direct_requests = DirectServiceRequest.objects.filter(
+                tenant=request.user
+            ).order_by('-created_at')[:4]
             
+            print(f"Direct Requests for {request.user}: {tenant_direct_requests}")  # Debug output
+            context['tenant_direct_requests'] = tenant_direct_requests
+
         elif request.user.user_type == 'serviceprovider':
             # Get upcoming jobs for service provider
             upcoming_jobs = ServiceRequest.objects.filter(
@@ -33,7 +45,13 @@ def home(request):
                 status__in=['assigned', 'in_progress']
             ).order_by('scheduled_date')[:4]
             context['upcoming_jobs'] = upcoming_jobs
-            
+
+            # Get direct service requests assigned to the provider
+            direct_requests = DirectServiceRequest.objects.filter(
+                provider=request.user
+            ).order_by('-created_at')[:4]
+            context['direct_requests'] = direct_requests
+
     return render(request, 'users/home.html', context)
 
 def register_tenant(request):
@@ -171,15 +189,20 @@ def approve_user(request, user_id):
     return redirect('admin_dashboard')
 
 
+from django.shortcuts import get_object_or_404
+from users.models import CustomUser
+
 @login_required
 def edit_profile(request):
     """Allows users to update their profile based on their role (Tenant/Service Provider)."""
-    
-    if hasattr(request.user, 'tenant_profile'):
-        profile = request.user.tenant_profile
+
+    user = get_object_or_404(CustomUser, pk=request.user.pk)  # Ensure the user is a CustomUser instance
+
+    if hasattr(user, 'tenant_profile'):
+        profile = user.tenant_profile
         form_class = TenantProfileForm
-    elif hasattr(request.user, 'provider_profile'):
-        profile = request.user.provider_profile
+    elif hasattr(user, 'provider_profile'):
+        profile = user.provider_profile
         form_class = ServiceProviderProfileForm
     else:
         messages.error(request, "Profile not found.")
@@ -190,12 +213,13 @@ def edit_profile(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Your profile has been updated successfully!")
-            return redirect('tenant_profile' if hasattr(request.user, 'tenant_profile') else 'provider_profile')
+            return redirect('tenant_profile' if hasattr(user, 'tenant_profile') else 'provider_profile')
 
     else:
         form = form_class(instance=profile)
 
     return render(request, 'users/edit_profile.html', {'form': form})
+
 @login_required
 def tenant_profile_view(request):
     profile = request.user.tenant_profile
@@ -203,22 +227,65 @@ def tenant_profile_view(request):
 
 @login_required
 def provider_profile_view(request):
+    # Ensure request.user is a CustomUser instance
+    if not isinstance(request.user, CustomUser):
+        messages.error(request, "Invalid user instance.")
+        return redirect('home')
+
     # Ensure the user has a provider_profile
     profile = getattr(request.user, 'provider_profile', None)
-    if profile is None:
-        return render(request, 'users/no_profile.html', {'message': 'Profile not found.'})
+    if not profile:
+        messages.error(request, "No provider profile found.")
+        return redirect('dashboard')  # Redirect to a relevant page
 
-    # Ensure service_provided is a list of IDs
-    service_provided_ids = profile.service_provided.values_list('id', flat=True)  
-
-    # Fetch the service_provided as actual ServiceCategory objects
-    service_provided = ServiceCategory.objects.filter(id__in=service_provided_ids)
+    # Fetch the services the provider offers
+    service_provided = profile.service_provided.all()  # This is more efficient than filtering manually
 
     # Fetch reviews for the provider
-    reviews = ServiceReview.objects.filter(service_request__provider=profile)
+    reviews = ServiceReview.objects.filter(service_request__provider=request.user)
 
     return render(request, 'services/provider_profile.html', {
         'profile': profile,
         'reviews': reviews,
         'service_provided': service_provided
     })
+
+def generate_reset_link(request):
+    if request.method == "POST":
+        request_id = json.loads(request.body).get("request_id")
+        reset_link = request.build_absolute_uri(reverse('services:request_detail', args=[request_id]))
+        
+        # Print the reset link to the terminal
+        print(f"Generated Reset Link: {reset_link}")
+
+        return JsonResponse({"status": "success", "reset_link": reset_link})
+    
+    return JsonResponse({"status": "error"}, status=400)
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from services.models import ServiceRequest, DirectServiceRequest
+
+@login_required
+def client_dashboard(request):
+    if request.user.user_type != 'tenant':
+        messages.error(request, "Access denied. Only tenants can access this page.")
+        return redirect('home')
+
+    # Fetch recent service requests for the logged-in tenant
+    recent_requests = ServiceRequest.objects.filter(
+        tenant=request.user
+    ).order_by('-created_at').select_related('provider')  # No 'service'
+
+    # Fetch direct service requests made by the tenant
+    direct_requests = DirectServiceRequest.objects.filter(
+        tenant=request.user
+    ).order_by('-created_at').select_related('provider')
+
+    context = {
+        'recent_requests': recent_requests,
+        'direct_requests': direct_requests,
+    }
+
+    return render(request, 'users/client_dashboard.html', context)
+
