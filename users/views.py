@@ -288,4 +288,22 @@ def client_dashboard(request):
     }
 
     return render(request, 'users/client_dashboard.html', context)
+@login_required
+def tenant_profile(request, pk):
+    # Only allow service providers to view tenant profiles
+    if request.user.user_type != 'serviceprovider':
+        return HttpResponseForbidden("You are not authorized to view this page.")
+    
+    # Get the tenant user with the given pk
+    tenant = get_object_or_404(CustomUser, pk=pk, user_type='tenant')
+    
+    # Try to get the associated TenantProfile
+    try:
+        tenant_profile = tenant.tenant_profile
+    except TenantProfile.DoesNotExist:
+        tenant_profile = None
 
+    return render(request, 'users/tenant_public_profile.html', {
+        'tenant': tenant,
+        'tenant_profile': tenant_profile
+    })

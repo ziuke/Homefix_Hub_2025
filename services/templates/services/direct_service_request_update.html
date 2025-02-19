@@ -1,19 +1,54 @@
-{# templates/services/direct_service_request_update.html #}
 {% extends "users/base.html" %}
 
 {% block content %}
-  <h2>Update Service Request</h2>
-  <p>
-    <strong>Request from:</strong> {{ direct_request.tenant.get_full_name|default:direct_request.tenant.username }}<br>
-    <strong>Current Status:</strong> {{ direct_request.status|capfirst }}
-  </p>
-  <form method="post">
-    {% csrf_token %}
-    <label for="status">Change status:</label>
-    <select name="status" id="status">
-      <option value="accepted">Accept</option>
-      <option value="rejected">Reject</option>
-    </select>
-    <button type="submit">Update Status</button>
-  </form>
+<div class="max-w-2xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Update Service Request</h2>
+
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="space-y-2">
+                <div>
+                    <p class="text-sm text-gray-500">Request from</p>
+                    <p class="text-lg font-semibold text-gray-800">
+                        {{ direct_request.tenant.get_full_name|default:direct_request.tenant.username }}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Current Status</p>
+                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-medium
+                        {% if direct_request.status == 'accepted' %}
+                            bg-green-100 text-green-800
+                        {% elif direct_request.status == 'rejected' %}
+                            bg-red-100 text-red-800
+                        {% else %}
+                            bg-yellow-100 text-yellow-800
+                        {% endif %}">
+                        {{ direct_request.status|capfirst }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <div class="space-y-2">
+                <label for="status" class="block text-sm font-medium text-gray-700">
+                    Change status
+                </label>
+                <select name="status" id="status" 
+                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="accepted">Accept</option>
+                    <option value="rejected">Reject</option>
+                </select>
+            </div>
+
+            <div class="flex justify-end">
+                <button type="submit" 
+                        class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                    Update Status
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

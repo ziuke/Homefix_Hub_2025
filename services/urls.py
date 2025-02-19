@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
-
+from .views import direct_service_request_detail
+from users.views import tenant_profile
 app_name = 'services'
 
 urlpatterns = [
@@ -33,4 +34,7 @@ urlpatterns = [
     path('direct-request/<int:pk>/update/', 
          views.direct_service_request_update, 
          name='direct_service_request_update'),
+
+    path('direct-request/<int:pk>/', views.direct_service_request_detail, name='direct_service_request_detail'),
+
 ]

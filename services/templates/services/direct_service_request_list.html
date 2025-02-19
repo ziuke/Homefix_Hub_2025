@@ -1,28 +1,59 @@
-{# templates/services/direct_service_request_list.html #}
 {% extends "users/base.html" %}
 
 {% block content %}
-  <h2>
-    {% if user.user_type == 'serviceprovider' %}
-      Received Service Requests
-    {% else %}
-      Your Service Requests
-    {% endif %}
-  </h2>
-  <ul>
-    {% for req in direct_requests %}
-      <li>
-        <strong>From:</strong> {{ req.tenant.get_full_name|default:req.tenant.username }}<br>
-        <strong>To:</strong> {{ req.provider.get_full_name|default:req.provider.username }}<br>
-        <strong>Status:</strong> {{ req.status|capfirst }}<br>
-        <strong>Date:</strong> {{ req.created_at|date:"F j, Y, g:i a" }}
-        {% if user.user_type == 'serviceprovider' and req.status == 'pending' %}
-          <br><a href="{% url 'services:direct_service_request_update' req.pk %}">Update Request</a>
-        {% endif %}
-      </li>
-      <hr>
-    {% empty %}
-      <li>No service requests found.</li>
-    {% endfor %}
-  </ul>
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">
+            {% if user.user_type == 'serviceprovider' %}
+                Received Service Requests
+            {% else %}
+                Your Service Requests
+            {% endif %}
+        </h2>
+
+        <div class="space-y-4">
+            {% for req in direct_requests %}
+                <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">From</p>
+                            <p class="font-semibold text-gray-800">
+                                {{ req.tenant.get_full_name|default:req.tenant.username }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">To</p>
+                            <p class="font-semibold text-gray-800">
+                                {{ req.provider.get_full_name|default:req.provider.username }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <span class="px-3 py-1 rounded-full text-sm font-medium
+                                {% if req.status == 'accepted' %}
+                                    bg-green-100 text-green-800
+                                {% elif req.status == 'rejected' %}
+                                    bg-red-100 text-red-800
+                                {% else %}
+                                    bg-yellow-100 text-yellow-800
+                                {% endif %}">
+                                {{ req.status|capfirst }}
+                            </span>
+                            <span class="text-sm text-gray-500">
+                                {{ req.created_at|date:"F j, Y, g:i a" }}
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center py-12">
+                    <p class="text-gray-500 text-lg">No service requests found.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 {% endblock %}

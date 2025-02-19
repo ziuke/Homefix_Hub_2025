@@ -3,7 +3,7 @@ from .models import TenantProfile, ServiceProviderProfile
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from .models import CustomUser
 from services.models import ServiceCategory
-
+import re
 class TenantRegistrationForm(UserCreationForm):
     location = forms.CharField(max_length=255)
 
@@ -58,13 +58,31 @@ class TenantProfileForm(forms.ModelForm):
     
     class Meta:
         model = TenantProfile
-        fields = ['location']
+        fields = ['location', 'phone_number', 'move_in_date', 'maintenance_preferences']
         widgets = {
             'location': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-300 focus:border-indigo-500',
                 'placeholder': 'Enter your location'
             }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-300 focus:border-indigo-500',
+                'placeholder': 'Enter your phone number'
+            }),
+            'move_in_date': forms.DateInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-300 focus:border-indigo-500',
+                'type': 'date'
+            }),
+            'maintenance_preferences': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-300 focus:border-indigo-500',
+                'placeholder': 'Enter your maintenance preferences'
+            }),
         }
+    def clean_phone_number(self):
+        """Validate that phone number starts with 6, 7, 8, or 9 and is exactly 10 digits."""
+        phone_number = self.cleaned_data.get("phone_number")
+        if not re.fullmatch(r"[6789]\d{9}", phone_number):
+            raise forms.ValidationError("Phone number must start with 6, 7, 8, or 9 and be exactly 10 digits.")
+        return phone_number
 
 
 class ServiceProviderProfileForm(forms.ModelForm):

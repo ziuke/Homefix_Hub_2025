@@ -6,7 +6,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="flex justify-between items-center mb-8">
-      <h2 class="text-3xl font-bold text-gray-900">Service Requests</h2>
+      <h2 class="text-3xl font-bold text-gray-900">Maintenance Requests</h2>
       {% if user.user_type == 'tenant' %}
       <a href="{% url 'services:request_create' %}" class="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-xl shadow hover:bg-blue-700 transition">
         <i class="fas fa-plus mr-2"></i> New Request

@@ -1,11 +1,44 @@
-{# templates/services/direct_service_request_form.html #}
 {% extends "users/base.html" %}
-
+{% load custom_filter %}
 {% block content %}
-  <h2>Request Service from {{ provider.get_full_name|default:provider.username }}</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Send Request</button>
-  </form>
+<div class="max-w-2xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">
+            Request Service from 
+            <span class="text-indigo-600">
+                {{ provider.get_full_name|default:provider.username }}
+            </span>
+        </h2>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="space-y-2">
+                    <label for="{{ field.id_for_label }}" 
+                           class="block text-sm font-medium text-gray-700">
+                        {{ field.label }}
+                    </label>
+                    <div class="mt-1">
+                        {{ field|add_class:"w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" }}
+                    </div>
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                    {% if field.help_text %}
+                        <p class="text-gray-500 text-sm mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="mt-6">
+                <button type="submit" 
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                    Send Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

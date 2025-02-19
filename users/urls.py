@@ -39,7 +39,9 @@ urlpatterns = [
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('approve-user/<int:user_id>/', views.approve_user, name='approve_user'),
     path('edit-profile/', views.edit_profile, name='edit_profile'),
-    path('tenant-profile/', views.tenant_profile_view, name='tenant_profile'),
+    path('tenant-profile/<int:tenant_id>/', views.tenant_profile_view, name='tenant_profile'),
     path('provider-profile/', views.provider_profile_view, name='provider_profile'),
     path('client-dashboard/', views.client_dashboard, name='client_dashboard'),
+    path('tenant-profile/<int:pk>/', views.tenant_profile, name='tenant_profile'),
+
 ]

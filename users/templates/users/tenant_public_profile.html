@@ -1,0 +1,18 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Tenant Profile: {{ tenant.get_full_name|default:tenant.username }}</h2>
+    <p><strong>Username:</strong> {{ tenant.username }}</p>
+    <p><strong>Email:</strong> {{ tenant.email }}</p>
+    <p><strong>Phone Number:</strong> {{ tenant.phone_number }}</p>
+    
+    {% if tenant_profile %}
+        <p><strong>Location:</strong> {{ tenant_profile.location }}</p>
+    {% else %}
+        <p>No additional profile information available.</p>
+    {% endif %}
+    
+    <a href="{% url 'services:direct_service_request_list' %}" class="btn btn-secondary">Back to Requests</a>
+</div>
+{% endblock %}

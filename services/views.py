@@ -26,8 +26,12 @@ from .forms import DirectServiceRequestForm
 from .models import DirectServiceRequest
 from django.conf import settings
 from django.core.mail import send_mail
+from users.views import tenant_profile
+from users.models import TenantProfile
 @login_required
 def service_request_create(request):
+    tenant_profile = TenantProfile.objects.get(user=request.user)  # Get the tenant profile of the logged-in user
+
     if request.method == 'POST':
         form = ServiceRequestForm(request.POST)
         if form.is_valid():
@@ -38,6 +42,11 @@ def service_request_create(request):
             return redirect('services:request_detail', pk=service_request.pk)
     else:
         form = ServiceRequestForm()
+
+        # Autofill the location field with the user's tenant profile location
+        if 'location' in form.fields:
+            form.fields['location'].initial = tenant_profile.location
+
     return render(request, 'services/request_form.html', {'form': form})
 
 from django.http import JsonResponse
@@ -536,3 +545,15 @@ def direct_service_request_update(request, pk):
             return JsonResponse({'error': 'Invalid status'}, status=400)
     
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def direct_service_request_detail(request, pk):
+    direct_request = get_object_or_404(DirectServiceRequest, pk=pk)
+
+    # Only the provider should be able to view the request details
+    if request.user != direct_request.provider:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    return render(request, 'services/direct_service_request_detail.html', {
+        'direct_request': direct_request
+    })

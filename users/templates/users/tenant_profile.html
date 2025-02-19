@@ -31,12 +31,30 @@
 
             <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
                 <p class="text-sm font-medium text-gray-500">Phone</p>
-                <p class="text-gray-900 font-semibold">{{ user.phone_number }}</p>
+                <p class="text-gray-900 font-semibold">{{ profile.phone_number|default:"Not provided" }}</p>
             </div>
 
             <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
                 <p class="text-sm font-medium text-gray-500">Location</p>
                 <p class="text-gray-900 font-semibold">{{ profile.location }}</p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                <p class="text-sm font-medium text-gray-500">Move-in Date</p>
+                <p class="text-gray-900 font-semibold">
+                    {{ profile.move_in_date|default:"Not specified" }}
+                </p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                <p class="text-sm font-medium text-gray-500">Maintenance Preferences</p>
+                <p class="text-gray-900 font-semibold">
+                    {% if profile.maintenance_preferences %}
+                        {{ profile.maintenance_preferences }}
+                    {% else %}
+                        No preferences set.
+                    {% endif %}
+                </p>
             </div>
 
             <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
@@ -49,11 +67,13 @@
         </div>
 
         <!-- Actions -->
+        {% if user.user_type == 'tenant' %}
         <div class="mt-6 text-center">
             <a href="{% url 'edit_profile' %}" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-md shadow-md">
                 <i class="fas fa-edit mr-2"></i> Edit Profile
             </a>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
