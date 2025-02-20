@@ -12,7 +12,7 @@
                 {% if is_edit %}
                     Edit Your Review
                 {% else %}
-                    Write a Review for {{ service_request.provider.username }}
+                    Write a Review for {{ direct_request.provider.username }}
                 {% endif %}
             </h2>
         </div>
@@ -21,15 +21,12 @@
             <!-- Service Details -->
             <div class="mb-6">
                 <h3 class="text-sm font-medium text-gray-700 mb-2">Service Details</h3>
-                <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Service:</span> {{ service_request.category.name }}</p>
-                <p class="text-sm text-gray-600"><span class="font-medium">Completed:</span> {{ service_request.completed_at|date:"M d, Y" }}</p>
+                <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Service:</span> {{ direct_request.category.name }}</p>
+                <p class="text-sm text-gray-600"><span class="font-medium">Completed:</span> {{ direct_request.completed_at|date:"M d, Y" }}</p>
             </div>
 
             <form method="post">
                 {% csrf_token %}
-                
-
-                <!-- Rating Input -->
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.rating.label }}</label>
                     <div class="star-rating">
@@ -48,9 +45,7 @@
 
                 <!-- Comment Input -->
                 <div class="mb-6">
-                    <label for="{{ form.comment.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-                        {{ form.comment.label }}
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.comment.label }}</label>
                     {{ form.comment|add_class:"w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" }}
                     {% if form.comment.errors %}
                         <p class="mt-1 text-sm text-red-600">
@@ -58,13 +53,12 @@
                         </p>
                     {% endif %}
                 </div>
-
                 <!-- Form Buttons -->
                 <div class="flex flex-col space-y-3">
                     <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
                         {% if is_edit %}Update{% else %}Submit{% endif %} Review
                     </button>
-                    <a href="{% url 'services:request_detail' pk=service_request.id %}" 
+                    <a href="{% url 'services:direct_service_request_list'%}" 
                        class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-md text-center transition duration-150 ease-in-out">
                         Cancel
                     </a>

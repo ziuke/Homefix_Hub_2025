@@ -284,8 +284,37 @@
             </div>
             {% endif %}
             
-            C
-            
+                        <!-- Review Section -->
+                        {% if service_request.status == 'completed' %}
+                        {% if service_request.review %}
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Review</h3>
+                            <div class="flex items-center mb-2">
+                                <div class="text-yellow-500">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= service_request.review.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="ml-2 text-gray-700 font-medium">{{ service_request.review.rating }}/5</span>
+                            </div>
+                            <p class="text-gray-700">{{ service_request.review.comment }}</p>
+                            <p class="text-xs text-gray-500 mt-3">Posted on {{ service_request.review.created_at|date:"M d, Y" }}</p>
+                        </div>
+                        {% else %}
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Review</h3>
+                            <a href="{% url 'ratings:create_review' service_request_id=service_request.id %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition duration-200">
+                                Submit a Review
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                </div>
         </div>
         
         
