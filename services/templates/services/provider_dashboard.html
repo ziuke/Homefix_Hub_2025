@@ -17,7 +17,7 @@
                             <h5 class="font-semibold text-lg text-blue-600">{{ request.service_type }}</h5>
                             <p class="text-gray-700">{{ request.description }}</p>
                             <p class="text-sm text-gray-500">Posted: {{ request.created_at|date }}</p>
-                            <p class="text-gray-700">Budget: ${{ request.budget }}</p>
+                            <p class="text-gray-700">Budget: ${{ request.actual_cost }}</p>
                             <p class="text-gray-700">Location: {{ request.location }}</p>
                             <p class="text-gray-700">Status: {{ request.status }}</p>
                             <div class="mt-4 flex space-x-4">
@@ -89,6 +89,7 @@
                                     <tr>
                                         <th class="py-2 px-4 text-left">Service</th>
                                         <th class="py-2 px-4 text-left">Date</th>
+                                        <th class="py-2 px-4 text-left">Time Slot</th>
                                         <th class="py-2 px-4 text-left">Client</th>
                                         <th class="py-2 px-4 text-left">Status</th>
                                         <th class="py-2 px-4 text-left">Actions</th>
@@ -101,6 +102,7 @@
                                                 <a href="{% url 'services:request_detail' job.id %}" class="text-blue-600 hover:underline">{{ job.title }}</a>
                                             </td>
                                             <td class="py-2 px-4">{{ job.scheduled_date|date:"M d, Y" }}</td>
+                                            <td class="py-2 px-4">{{ job.scheduled_time_slot }}</td>
                                             <td class="py-2 px-4">{{ job.tenant.get_full_name|default:job.tenant.username }}</td>
                                             <td class="py-2 px-4">
                                                 <span class="inline-block py-1 px-3 text-xs font-semibold rounded-full

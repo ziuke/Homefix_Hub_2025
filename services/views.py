@@ -197,6 +197,9 @@ def accept_offer(request, offer_id):
     service_request.provider = offer.provider
     service_request.status = 'in_progress'
     service_request.is_provider_selected = True
+    service_request.scheduled_date = offer.proposed_date
+    service_request.scheduled_time_slot = offer.proposed_time_slot
+    service_request.actual_cost = offer.proposed_cost
     service_request.save()
 
     # Update the accepted offer's status to 'completed'
@@ -328,7 +331,7 @@ def search_providers(request):
         'avg_rating': avg_rating
     }
     return render(request, 'services/provider_search.html', context)
-
+from users.models import ServiceProviderProfile
 def provider_profile(request, pk):
     provider = get_object_or_404(CustomUser, pk=pk)  # Get provider
     reviews = ServiceReview.objects.filter(service_request__provider=provider)  # Get reviews
@@ -336,6 +339,7 @@ def provider_profile(request, pk):
     providers = ProviderProfile.objects.select_related('user').prefetch_related(
         'categories'
     ).filter(user__user_type='serviceprovider')
+    provider_profile = ServiceProviderProfile.objects.select_related('user').prefetch_related('service_provided').get(user=provider)
     # Calculate average rating for each provider using service requests
     for i in providers:
         reviews = ServiceReview.objects.filter(
@@ -345,13 +349,14 @@ def provider_profile(request, pk):
         avg_rating = reviews.aggregate(Avg('rating'))['rating__avg']
         total_reviews = reviews.count()
         i.avg_rating = avg_rating or 0
-
+    print(provider_profile)
     return render(request, 'services/provider_profile.html', {
         'provider': provider, 
         'reviews': reviews, 
         'service_offers': service_offers,
         'avg_rating': avg_rating,
-        'total_reviews': total_reviews
+        'total_reviews': total_reviews,
+        'provider_profile': provider_profile
     })
 
 @login_required
@@ -551,7 +556,7 @@ def direct_service_request_detail(request, pk):
     direct_request = get_object_or_404(DirectServiceRequest, pk=pk)
 
     # Only the provider should be able to view the request details
-    if request.user != direct_request.provider:
+    if request.user != direct_request.provider and request.user != direct_request.tenant:
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     tenant = direct_request.tenant  # Retrieve the associated tenant object

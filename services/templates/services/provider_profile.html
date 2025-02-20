@@ -3,55 +3,79 @@
 {% block content %}
 <div class="min-h-screen bg-gray-100 py-12">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    
     <!-- Provider Summary Card -->
-    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-      <div class="sm:flex">
-        <!-- Profile Icon with Gradient Background -->
-        <div class="sm:flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 p-8">
-          <div class="h-24 w-24 bg-white rounded-full flex items-center justify-center text-indigo-600 font-bold text-3xl uppercase">
-            {{ provider.username|first }}
-          </div>
-        </div>
-        <!-- Provider Details -->
-        <div class="p-8 flex flex-col justify-center">
-          <h2 class="text-3xl font-bold text-gray-900">{{ provider.username }}</h2>
-          <p class="mt-2 text-lg text-gray-700">
-            Services Completed: <span class="font-semibold">{{ service_offers|length }}</span>
-          </p>
-          <p class="mt-1 text-lg text-gray-700">
-            Total Reviews: <span class="font-semibold">{{ reviews|length }}</span>
-          </p>
-          <div class="mt-4 flex items-center">
-            <span class="text-lg text-gray-700 mr-2">Average Rating: {{ avg_rating }}</span>
-            <div class="flex text-yellow-500 text-xl">
-              {% for star in "12345"|make_list %}
-                {% if forloop.counter <= avg_rating %}
-                  <i class="fas fa-star"></i>
-                {% else %}
-                  <i class="far fa-star"></i>
-                {% endif %}
-              {% endfor %}
-            </div>
-          </div>
+<div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+  <div class="sm:flex">
+    
+    <!-- Profile Icon & Name -->
+    <div class="sm:flex-shrink-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 p-8">
+      <div class="h-24 w-24 bg-white rounded-full flex items-center justify-center text-indigo-600 font-bold text-3xl uppercase">
+        {{ provider.username|first }}
+      </div>
+      <h2 class="mt-4 text-3xl font-bold text-white text-center">{{ provider.username }}</h2>
+    </div>
+
+    <!-- Provider Details -->
+    <div class="p-8 flex flex-col justify-center space-y-4 w-full">
+
+      <!-- Address & Certifications -->
+      <div>
+        <h5 class="text-sm font-semibold text-gray-700">
+          Address: <span class="text-gray-800">{{ provider.provider_profile.service_location }}</span>
+        </h5>
+        <h5 class="text-sm font-semibold text-gray-700">
+          Certifications: <span class="text-gray-800">{{ provider.provider_profile.certifications }}</span>
+        </h5>
+      </div>
+
+      <!-- Statistics -->
+      <div class="border-t pt-4 space-y-1">
+        <p class="text-lg text-gray-700">
+          Services Completed: <span class="font-semibold">{{ service_offers|length }}</span>
+        </p>
+        <p class="text-lg text-gray-700">
+          Total Reviews: <span class="font-semibold">{{ reviews|length }}</span>
+        </p>
+      </div>
+
+      <!-- Average Rating -->
+      <div class="border-t pt-4 flex items-center">
+        <span class="text-lg text-gray-700 mr-2">Average Rating: {{ avg_rating }}</span>
+        <div class="flex text-yellow-500 text-xl">
+          {% for star in "12345"|make_list %}
+            {% if forloop.counter <= avg_rating %}
+              <i class="fas fa-star"></i>
+            {% else %}
+              <i class="far fa-star"></i>
+            {% endif %}
+          {% endfor %}
         </div>
       </div>
+      
     </div>
+  </div>
+</div>
 
     <!-- Reviews Section -->
     <div class="mt-12">
       <h3 class="text-2xl font-bold text-gray-900 mb-6">Reviews</h3>
+
       {% if reviews %}
         <div class="space-y-6">
           {% for review in reviews %}
             <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
               <div class="flex justify-between items-center">
+                
+                <!-- Reviewer Info -->
                 <div class="flex items-center space-x-4">
-                  <!-- Reviewer Icon -->
                   <div class="h-10 w-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold text-lg uppercase">
                     {{ review.reviewer.username|first }}
                   </div>
                   <h4 class="font-semibold text-gray-800">{{ review.reviewer.username }}</h4>
                 </div>
+
+                <!-- Rating -->
                 <div class="flex items-center">
                   <div class="flex text-yellow-500 text-lg">
                     {% for star in "12345"|make_list %}
@@ -64,7 +88,10 @@
                   </div>
                   <span class="ml-3 text-gray-600 font-medium">({{ review.rating }}/5)</span>
                 </div>
+
               </div>
+
+              <!-- Review Content -->
               <p class="mt-4 text-gray-700">{{ review.comment }}</p>
               <p class="mt-2 text-gray-500 text-sm">
                 Reviewed on: {{ review.created_at|date:"F j, Y" }}

@@ -5,7 +5,6 @@ from .models import CustomUser
 from services.models import ServiceCategory
 import re
 class TenantRegistrationForm(UserCreationForm):
-    location = forms.CharField(max_length=255)
 
     class Meta:
         model = CustomUser

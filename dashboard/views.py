@@ -219,7 +219,9 @@ def service_categories(request):
 def service_requests(request):
     # Adjust the query to use prefetch_related for ManyToManyField
     requests = ServiceRequest.objects.prefetch_related('tenant', 'category').all()
-
+    
+    print(requests)
+    print(requests[0].category.all())
     
     context = {
         'requests': requests
@@ -233,14 +235,14 @@ def request_details(request, request_id):
     ).prefetch_related(
         'category'  # If category is a ManyToManyField, use prefetch_related
     ), id=request_id)
-
     offers = service_request.offers.select_related('provider').all()
     review = service_request.service_review if hasattr(service_request, 'service_review') else None
 
     context = {
         'service_request': service_request,
         'offers': offers,
-        'review': review
+        'review': review,
+        'category': service_request.category
     }
     return render(request, 'dashboard/request_details.html', context)
 

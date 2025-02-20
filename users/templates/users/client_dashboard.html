@@ -25,7 +25,7 @@
                                         {{ request.title }}
                                     </a>
                                 </td>
-                                <td class="p-2 font-medium text-blue-600">{{ request.status }}</td>
+                                <td class="p-2 font-medium {% if request.status == 'completed' %}text-green-600{% elif request.status == 'rejected' %}text-red-600{% else %}text-blue-600{% endif %}">{{ request.status }}</td>
                                 <td class="p-2 text-sm text-gray-500">{{ request.created_at }}</td>
                             </tr>
                         {% empty %}
@@ -55,9 +55,11 @@
                         {% for request in direct_requests %}
                             <tr class="border border-gray-300">
                                 <td class="p-2">
-                                    {{ request.provider.username }}
+                                    <a href="{% url 'services:direct_service_request_detail' request.id %}" class="text-blue-500 hover:underline {% if request.status == 'pending' %}cursor-not-allowed{% endif %}">
+                                        {{ request.provider.username }}
+                                    </a>
                                 </td>
-                                <td class="p-2 font-medium text-green-600">{{ request.status }}</td>
+                                <td class="p-2 font-medium {% if request.status == 'completed' %}text-green-600{% elif request.status == 'rejected' %}text-red-600{% else %}text-blue-400{% endif %}">{{ request.status }}</td>
                                 <td class="p-2 text-sm text-gray-500">{{ request.created_at }}</td>
                                 <td class="p-2 text-gray-700">
                                     {{ request.message|default:"No message provided" }}

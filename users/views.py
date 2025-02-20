@@ -213,17 +213,12 @@ def edit_profile(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Your profile has been updated successfully!")
-            return redirect('tenant_profile' if hasattr(user, 'tenant_profile') else 'provider_profile')
+            return redirect('edit_profile')  # Pass the user's pk
 
     else:
         form = form_class(instance=profile)
 
     return render(request, 'users/edit_profile.html', {'form': form})
-
-@login_required
-def tenant_profile_view(request):
-    profile = request.user.tenant_profile
-    return render(request, 'users/tenant_profile.html', {'profile': profile})
 
 @login_required
 def provider_profile_view(request):
