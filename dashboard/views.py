@@ -11,9 +11,10 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.views.decorators.http import require_http_methods
 from datetime import datetime
 from services.models import DirectServiceRequest
+from ratings.models import ServiceReview
+from django.http import JsonResponse
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
-
 @user_passes_test(is_admin)
 def dashboard_home(request):
     # Get counts for different user types
@@ -394,3 +395,25 @@ def direct_request_delete(request, pk):
     service_request = get_object_or_404(DirectServiceRequest, pk=pk)
     service_request.delete()
     return JsonResponse({'status': 'success'})
+@user_passes_test(is_admin)
+def manage_reviews(request):
+    ratings = ServiceReview.objects.all().order_by('-created_at')
+    print(ratings)
+    return render(request, 'dashboard/manage_ratings.html', {'ratings': ratings})
+
+@user_passes_test(is_admin)
+def edit_review(request, review_id):
+    review = get_object_or_404(ServiceReview, id=review_id)
+    if request.method == 'POST':
+        review.rating = request.POST.get('rating')
+        review.comment = request.POST.get('comment')
+        review.save()
+        return redirect('dashboard:manage_reviews')
+    return render(request, 'dashboard/edit_review.html', {'review': review})
+
+@user_passes_test(is_admin)
+@require_http_methods(["POST"])
+def delete_review(request, review_id):
+    review = get_object_or_404(ServiceReview, id=review_id)
+    review.delete()
+    return redirect('dashboard:manage_reviews')

@@ -37,4 +37,8 @@ urlpatterns = [
     path('direct-service-requests/<int:pk>/delete/', 
          views.direct_request_delete, 
          name='direct_request_delete'),
+    path('service-reviews/', views.manage_reviews, name='manage_reviews'),
+    path('service-reviews/<int:review_id>/edit/', views.edit_review, name='edit_rating'),
+    path('service-reviews/<int:review_id>/delete/', views.delete_review, name='delete_rating'),
+
 ]
