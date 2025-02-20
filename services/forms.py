@@ -4,11 +4,21 @@ from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 
 class ServiceRequestForm(forms.ModelForm):
-    category = forms.ModelMultipleChoiceField(
+    category = forms.ModelChoiceField(
         queryset=ServiceCategory.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
-        required=True
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
+
+    class Meta:
+        model = ServiceRequest
+        fields = ['category', 'title', 'description', 'location', 'priority']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'priority': forms.Select(attrs={'class': 'form-control'}),
+        }
 
     class Meta:
         model = ServiceRequest

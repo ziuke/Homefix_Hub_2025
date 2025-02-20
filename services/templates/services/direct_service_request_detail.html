@@ -87,7 +87,35 @@
                     </div>
                 </div>
             </div>
-
+            <!-- Review Section -->
+            {% if direct_request.status == 'completed' %}
+                {% if direct_request.review %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Review</h3>
+                    <div class="flex items-center mb-2">
+                        <div class="text-yellow-500">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= direct_request.review.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="ml-2 text-gray-700 font-medium">{{ direct_request.review.rating }}/5</span>
+                    </div>
+                    <p class="text-gray-700">{{ direct_request.review.comment }}</p>
+                    <p class="text-xs text-gray-500 mt-3">Posted on {{ direct_request.review.created_at|date:"M d, Y" }}</p>
+                </div>
+                {% else %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Review</h3>
+                    <a href="{% url 'ratings:create_direct_service_request_review' direct_request.id %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition duration-200">
+                        Submit a Review
+                    </a>
+                </div>
+                {% endif %}
+            {% endif %}
             <!-- Action Buttons -->
             {% if direct_request.status == 'pending' %}
             <div class="bg-white p-6 border-t flex flex-col sm:flex-row justify-center sm:justify-end space-y-3 sm:space-y-0 sm:space-x-4">

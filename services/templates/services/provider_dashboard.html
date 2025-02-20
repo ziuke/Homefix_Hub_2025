@@ -279,8 +279,10 @@
     </div>
 </div>
 <script>
-    document.querySelectorAll('.update-direct-request').forEach(button => {
+    console.log('Script Loaded: Dashboard');
+    document.querySelectorAll('.update-direct-request, .update-status').forEach(button => {
         button.addEventListener('click', function() {
+            
             const reqId = this.getAttribute('data-request-id');
             const newStatus = this.getAttribute('data-status');
             const actionUrl = this.getAttribute('data-action-url');

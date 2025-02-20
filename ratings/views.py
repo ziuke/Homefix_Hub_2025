@@ -3,12 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Avg
-from services.models import ServiceRequest
+from services.models import ServiceRequest, DirectServiceRequest
 from .models import ServiceReview
 from .forms import ServiceReviewForm
 from django.shortcuts import render, get_object_or_404
 from services.models import CustomUser  # Assuming CustomUser is your user model
-from .models import ServiceReview
+from .models import ServiceReview, DirectServiceRequestReview
 
 # Create your views here.
 
@@ -90,3 +90,50 @@ def provider_profile(request, provider_id):
     }
 
     return render(request, 'provider_profile.html', context)
+
+
+def direct_service_request_review(request, direct_request_id):
+    direct_request = get_object_or_404(DirectServiceRequest, id=direct_request_id)
+    
+    if request.method == 'POST':
+        form = ServiceReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.direct_request = direct_request  # Ensure this matches your model
+            review.reviewer = request.user
+            
+            # If you have a field for service_request in ServiceReview, set it
+            # review.service_request = direct_request.service_request  # Uncomment if applicable
+            
+            review.save()
+            messages.success(request, 'Thank you for your review!')
+            return redirect('services:request_detail', pk=direct_request.id)
+    else:
+        form = ServiceReviewForm()
+    
+    return render(request, 'ratings/review_form.html', {
+        'form': form,
+        'service_request': direct_request
+    })
+
+def edit_direct_service_request_review(request, review_id):
+    review = get_object_or_404(
+        DirectServiceReview,
+        id=review_id,
+        reviewer=request.user
+    )
+    
+    if request.method == 'POST':
+        form = ServiceReviewForm(request.POST, instance=review)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your review has been updated.')
+            return redirect('services:request_detail', pk=review.service_request.id)
+    else:
+        form = ServiceReviewForm(instance=review)
+    
+    return render(request, 'ratings/review_form.html', {
+        'form': form,
+        'service_request': review.service_request,
+        'is_edit': True
+    })

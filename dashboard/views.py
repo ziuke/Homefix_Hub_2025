@@ -218,10 +218,10 @@ def service_categories(request):
 @user_passes_test(is_admin)
 def service_requests(request):
     # Adjust the query to use prefetch_related for ManyToManyField
-    requests = ServiceRequest.objects.prefetch_related('tenant', 'category').all()
+    requests = ServiceRequest.objects.prefetch_related('tenant')
     
     print(requests)
-    print(requests[0].category.all())
+
     
     context = {
         'requests': requests

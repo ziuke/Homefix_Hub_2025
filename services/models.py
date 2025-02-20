@@ -7,7 +7,6 @@ from django.conf import settings
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
-    icon = models.CharField(max_length=50, help_text="FontAwesome icon class")
 
     def __str__(self):
         return self.name
@@ -33,7 +32,7 @@ class ServiceRequest(models.Model):
     )
 
     tenant = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='service_requests')
-    category = models.ManyToManyField(ServiceCategory, related_name='service_requests')
+    category = models.ForeignKey(ServiceCategory, on_delete=models.CASCADE, related_name='service_requests', default=1)
     title = models.CharField(max_length=200)
     description = models.TextField()
     location = models.CharField(max_length=255)

@@ -24,7 +24,7 @@ class ServiceProviderRegistrationForm(UserCreationForm):
     service_location = forms.CharField(max_length=255)
     categories = forms.ModelMultipleChoiceField(
         queryset=ServiceCategory.objects.all(),
-        widget=forms.CheckboxSelectMultiple,  # Change to SelectMultiple if needed
+        widget=forms.CheckboxSelectMultiple,  # Converts multi-select into checkboxes
         required=True,
         help_text="Select the service categories you provide"
     )
