@@ -263,7 +263,7 @@
                         
                         {% if recent_activity|length >= 10 %}
                             <div class="text-center mt-4">
-                                <a href="#" class="text-blue-600 hover:underline">Show more activity</a>
+                                <a href="{% url 'services:all_activites' %}" class="text-blue-600 hover:underline">Show more activity</a>
                             </div>
                         {% endif %}
                     {% else %}

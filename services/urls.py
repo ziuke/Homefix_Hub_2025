@@ -37,5 +37,6 @@ urlpatterns = [
 
     path('direct-request/<int:pk>/', views.direct_service_request_detail, name='direct_service_request_detail'),
     path('tenant-profile/<int:pk>/', views.tenant_profile, name='tenant_profile'),
+    path('all-activities/', views.all_activites, name='all_activites'),
 
 ]

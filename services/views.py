@@ -567,3 +567,51 @@ def direct_service_request_detail(request, pk):
         'direct_request': direct_request,
         'tenant': tenant  # Pass the tenant object to the template
     })
+@login_required
+def all_activites(request):
+    # Generate recent activity
+    recent_activity = []
+    
+    # 1. Recently assigned requests (last 7 days)
+    recent_assignments = ServiceRequest.objects.filter(
+        provider=request.user,
+        status='assigned',
+        created_at__gte=timezone.now() - timezone.timedelta(days=7)
+    ).order_by('-created_at')[:5]
+    
+    for service_req in recent_assignments:
+        recent_activity.append({
+            'title': f"New Job Assignment: {service_req.title}",
+            'description': f"You've been assigned to handle {service_req.title} in {service_req.location}",
+            'created_at': service_req.created_at,
+            'link': reverse('services:request_detail', args=[service_req.id]),
+            'type': 'assignment'
+        })
+    
+    # 2. Recent status changes
+    recent_status_changes = ServiceRequest.objects.filter(
+        provider=request.user,
+        status__in=['in_progress', 'completed', 'cancelled']
+    ).order_by('-completed_at', '-created_at')[:5]
+    
+    for service_req in recent_status_changes:
+        if service_req.status == 'in_progress':
+            action = "started"
+            timestamp = service_req.created_at
+        elif service_req.status == 'completed':
+            action = "completed"
+            timestamp = service_req.completed_at or service_req.created_at
+        elif service_req.status == 'cancelled':
+            action = "cancelled"
+            timestamp = service_req.created_at
+        
+        recent_activity.append({
+            'title': f"Status Update: {service_req.title}",
+            'description': f"Service request has been {action}",
+            'created_at': timestamp,
+            'link': reverse('services:request_detail', args=[service_req.id]),
+            'type': 'status_update'
+        })
+    return render(request, 'services/all_activites.html', {
+        'recent_activity': recent_activity
+    })
