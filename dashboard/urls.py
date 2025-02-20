@@ -22,4 +22,19 @@ urlpatterns = [
     path('service-requests/', views.service_requests, name='service_requests'),
     path('service-requests/<int:request_id>/', views.request_details, name='request_details'),
     path('provider-performance/', views.provider_performance, name='provider_performance'),
+    path('direct-service-requests/', 
+         views.dashboard_service_requests, 
+         name='direct_service_requests'),
+    
+    path('direct-service-requests/<int:pk>/', 
+         views.direct_request_detail, 
+         name='direct_request_detail'),
+    
+    path('direct-service-requests/<int:pk>/update/', 
+         views.direct_request_update, 
+         name='direct_request_update'),
+    
+    path('direct-service-requests/<int:pk>/delete/', 
+         views.direct_request_delete, 
+         name='direct_request_delete'),
 ]

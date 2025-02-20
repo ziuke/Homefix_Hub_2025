@@ -554,6 +554,8 @@ def direct_service_request_detail(request, pk):
     if request.user != direct_request.provider:
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
+    tenant = direct_request.tenant  # Retrieve the associated tenant object
     return render(request, 'services/direct_service_request_detail.html', {
-        'direct_request': direct_request
+        'direct_request': direct_request,
+        'tenant': tenant  # Pass the tenant object to the template
     })

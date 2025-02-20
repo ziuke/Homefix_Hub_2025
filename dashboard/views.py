@@ -8,7 +8,9 @@ from users.models import CustomUser, TenantProfile, ServiceProviderProfile
 from services.models import ServiceRequest, ServiceCategory, ServiceOffer, ServiceReview, ProviderProfile
 from .models import ApprovalLog, AdminNotification
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-
+from django.views.decorators.http import require_http_methods
+from datetime import datetime
+from services.models import DirectServiceRequest
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
 
@@ -299,3 +301,96 @@ def delete_category(request, category_id):
         return redirect('dashboard:service_categories')
     
     return render(request, 'dashboard/delete_category.html', {'category_id': category_id})
+@user_passes_test(is_admin)
+def dashboard_service_requests(request):
+    # Get filter parameters
+    status = request.GET.get('status')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    search = request.GET.get('search')
+
+    # Base queryset
+    queryset = DirectServiceRequest.objects.all().order_by('-created_at')
+
+    # Apply filters
+    if status:
+        queryset = queryset.filter(status=status)
+    
+    if date_from:
+        date_from = datetime.strptime(date_from, '%Y-%m-%d')
+        queryset = queryset.filter(created_at__gte=date_from)
+    
+    if date_to:
+        date_to = datetime.strptime(date_to, '%Y-%m-%d')
+        queryset = queryset.filter(created_at__lte=date_to)
+    
+    if search:
+        queryset = queryset.filter(
+            Q(tenant__username__icontains=search) |
+            Q(tenant__email__icontains=search) |
+            Q(provider__username__icontains=search) |
+            Q(provider__email__icontains=search)
+        )
+
+    # Get counts for quick stats
+    context = {
+        'pending_count': DirectServiceRequest.objects.filter(status='pending').count(),
+        'accepted_count': DirectServiceRequest.objects.filter(status='accepted').count(),
+        'rejected_count': DirectServiceRequest.objects.filter(status='rejected').count(),
+    }
+
+    # Pagination
+    paginator = Paginator(queryset, 10)  # Show 10 requests per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context.update({
+        'direct_requests': page_obj,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'paginator': paginator,
+    })
+
+    return render(request, 'dashboard/direct_service_request.html', context)
+
+@user_passes_test(is_admin)
+@require_http_methods(["GET"])
+def direct_request_detail(request, pk):
+    service_request = get_object_or_404(DirectServiceRequest, pk=pk)
+    
+    data = {
+        'id': service_request.id,
+        'tenant_name': service_request.tenant.get_full_name() or service_request.tenant.username,
+        'provider_name': service_request.provider.get_full_name() or service_request.provider.username,
+        'status': service_request.get_status_display(),
+        'message': service_request.message,
+        'created_at': service_request.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+    }
+    
+    return JsonResponse(data)
+
+@user_passes_test(is_admin)
+@require_http_methods(["POST"])
+def direct_request_update(request, pk):
+    service_request = get_object_or_404(DirectServiceRequest, pk=pk)
+    
+    try:
+        data = json.loads(request.body)
+        new_status = data.get('status')
+        
+        if new_status in dict(DirectServiceRequest.STATUS_CHOICES):
+            service_request.status = new_status
+            service_request.save()
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'error': 'Invalid status'}, status=400)
+            
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+@user_passes_test(is_admin)
+@require_http_methods(["POST"])
+def direct_request_delete(request, pk):
+    service_request = get_object_or_404(DirectServiceRequest, pk=pk)
+    service_request.delete()
+    return JsonResponse({'status': 'success'})
