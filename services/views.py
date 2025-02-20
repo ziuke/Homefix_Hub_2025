@@ -286,7 +286,7 @@ def search_providers(request):
     providers = ProviderProfile.objects.select_related('user').prefetch_related(
         'categories'
     ).filter(user__user_type='serviceprovider')
-
+    phone_number = CustomUser.objects.get(id=request.user.id).phone_number
     for provider in providers:
         reviews = ServiceReview.objects.filter(
             service_request__provider=provider.user
@@ -302,6 +302,7 @@ def search_providers(request):
         location = form.cleaned_data.get('location')
         rating = form.cleaned_data.get('rating')
         availability = form.cleaned_data.get('availability')
+        
 
         if category:
             providers = providers.filter(categories=category)
@@ -312,7 +313,7 @@ def search_providers(request):
             providers = [p for p in providers if p.avg_rating >= float(rating)]
         if availability:
             providers = providers.filter(is_available=True)
-
+    
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         provider_list = [{
             'id': p.user.id,
@@ -321,14 +322,16 @@ def search_providers(request):
             'total_reviews': p.total_reviews,
             'categories': [c.name for c in p.categories.all()],
             'location': p.user.provider_profile.service_location,
-            'is_available': p.is_available
+            'is_available': p.is_available,
+            'phone_number': phone_number
         } for p in providers]
         return JsonResponse({'providers': provider_list})
 
     context = {
         'form': form,
         'providers': providers,
-        'avg_rating': avg_rating
+        'avg_rating': avg_rating,
+        'location': location
     }
     return render(request, 'services/provider_search.html', context)
 from users.models import ServiceProviderProfile

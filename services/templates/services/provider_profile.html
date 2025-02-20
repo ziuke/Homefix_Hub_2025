@@ -21,6 +21,8 @@
 
       <!-- Address & Certifications -->
       <div>
+        <h5
+
         <h5 class="text-sm font-semibold text-gray-700">
           Address: <span class="text-gray-800">{{ provider.provider_profile.service_location }}</span>
         </h5>
@@ -41,7 +43,7 @@
 
       <!-- Average Rating -->
       <div class="border-t pt-4 flex items-center">
-        <span class="text-lg text-gray-700 mr-2">Average Rating: {{ avg_rating }}</span>
+        <span class="text-lg text-gray-700 mr-2">Average Rating: {{ avg_rating|floatformat:1 }}</span>
         <div class="flex text-yellow-500 text-xl">
           {% for star in "12345"|make_list %}
             {% if forloop.counter <= avg_rating %}
